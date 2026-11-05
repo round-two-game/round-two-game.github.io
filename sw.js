@@ -1,6 +1,6 @@
 /* Round Two: einfacher Service Worker. Netzwerk zuerst, damit nach Updates nie ein alter Stand hängen bleibt.
    Nur für Dateien dieser Seite; Fremdquellen (PeerJS) bleiben unberührt. Offline wird die zuletzt geladene Fassung gezeigt. */
-const CACHE = "roundtwo-v4";
+const CACHE = "roundtwo-v5";
 const SHELL = ["./", "index.html", "qrcode.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

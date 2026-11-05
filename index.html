@@ -20,7 +20,8 @@
   --text:#EDEDED;--mut:#9A9AA0;--ptext:#EDEDED;--pmut:#9A9AA0;
   --ink:#EDEDED;--ink-t:#121212;
   --tape:#C9C9CE;--mustard:#B5B5BA;--olive:#EDEDED;
-  --r:12px;
+  --r:14px;--ok:#7FB88F;
+  --fs-s:13px;--fs-m:15px;--fs-l:20px;--fs-xl:28px;--fs-2xl:40px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--wall);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -40,7 +41,7 @@ button{font:inherit;color:inherit;cursor:pointer;transition:transform .1s ease,b
 .btn:active{transform:scale(.98)}
 .btn.sec{background:transparent;color:var(--text);border:1px solid var(--line);font-weight:600}
 .btn:disabled{opacity:.35;cursor:default}
-.link{background:none;border:0;color:var(--mut);padding:4px;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.link{background:none;border:0;color:var(--mut);padding:10px 6px;min-height:44px;font-size:14px;text-decoration:underline;text-underline-offset:3px}
 input[type=text],textarea{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);background:#121214;color:var(--text);font:inherit}
 textarea{resize:none;min-height:70px}
 input[type=text]::placeholder,textarea::placeholder{color:#6B6B72}
@@ -48,7 +49,7 @@ input[type=text]:focus,textarea:focus{outline:2px solid #8A8A92;outline-offset:1
 .stack{display:flex;flex-direction:column;gap:10px}
 .row{display:flex;gap:10px}.row>*{flex:1}
 .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#121214}
-.seg button{flex:1;padding:10px 6px;background:transparent;border:0;border-right:1px solid var(--line);font-size:15px;font-weight:600;color:var(--text)}
+.seg button{flex:1;min-height:44px;padding:10px 6px;background:transparent;border:0;border-right:1px solid var(--line);font-size:15px;font-weight:600;color:var(--text)}
 .seg button:last-child{border-right:0}
 .seg button.on{background:var(--ink);color:var(--ink-t)}
 .opt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);text-align:left;color:var(--text)}
@@ -61,7 +62,7 @@ input[type=text]:focus,textarea:focus{outline:2px solid #8A8A92;outline-offset:1
 .code b{display:grid;place-items:center;width:52px;height:62px;border-radius:10px;font:800 32px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text);background:var(--soft);border:1px solid var(--line)}
 .pl{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
 .pl:last-child{border:0}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--olive);margin-right:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ok);margin-right:10px}
 .dot.off{background:transparent;border:2px solid var(--mut)}
 .q{font-weight:800;font-size:26px;letter-spacing:-.01em;line-height:1.2}
 .q[style]{font-size:22px!important}
@@ -90,7 +91,7 @@ input[type=text]:focus,textarea:focus{outline:2px solid #8A8A92;outline-offset:1
 .who{display:inline-flex;align-items:center;gap:8px}
 .pickimg{display:flex;gap:12px;align-items:center}
 .pickimg .face{cursor:pointer;padding:0;color:var(--mut);border:1px dashed #6B6B72;background:transparent;width:64px;height:64px;font-size:28px}
-label{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700}
+label{font-size:13px;color:var(--mut);display:block;margin-bottom:5px;font-weight:600}
 .card.c{padding-top:18px}
 .kcard{padding-top:18px!important}
 .kcard .sticker{white-space:nowrap;display:inline-flex;margin:0 auto 8px}
@@ -105,8 +106,7 @@ label{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.0
 .drink{font-size:48px;line-height:1;animation:wig 1.6s ease-in-out infinite;display:block}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5}
 .cf{position:absolute;top:-16px;width:8px;height:14px;border-radius:1px;animation:fall linear infinite}
-.enter>*{animation:pop .3s ease both}
-.enter>*:nth-child(2){animation-delay:.04s}.enter>*:nth-child(3){animation-delay:.08s}.enter>*:nth-child(4){animation-delay:.12s}.enter>*:nth-child(5){animation-delay:.16s}.enter>*:nth-child(n+6){animation-delay:.2s}
+#app.enter{animation:fade .22s ease both}
 body.inroom #app{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 #chat{position:fixed;left:0;right:0;bottom:0;z-index:20;pointer-events:none}
 #chat>*{pointer-events:auto}
@@ -128,7 +128,42 @@ body.inroom #app{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .fly{position:fixed;bottom:90px;font-size:36px;pointer-events:none;z-index:50;animation:fly 2.4s ease-out forwards}
 .qrbox{display:flex;flex-direction:column;align-items:center;gap:6px;margin:12px 0 0}
 .qr{width:min(210px,60vw);height:auto;display:block;border-radius:8px;border:6px solid #fff}
-@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes flip{0%{opacity:0;transform:perspective(700px) rotateX(-70deg) translateY(30px)}60%{opacity:1}100%{transform:none}}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* feste Leiste unten (Start, Weiter) */
+.dock{position:sticky;bottom:0;z-index:10;margin-top:auto;padding:22px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--wall) 38%);display:flex;flex-direction:column;gap:8px}
+.dock p{text-align:center;font-size:14px;color:var(--mut)}
+body.hasdock #app{padding-bottom:0}
+body.hasdock .cfab{bottom:calc(92px + env(safe-area-inset-bottom))}
+body.hasdock #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
+/* einklappbare Bereiche */
+.acc{padding:0;overflow:hidden}
+.acc>button{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:56px;padding:12px 16px;background:none;border:0;text-align:left;color:var(--text)}
+.acc>button b{font-size:16px;font-weight:700}
+.acc>button small{display:block;color:var(--mut);font-size:13px;font-weight:400;margin-top:2px}
+.acc>button i{font-style:normal;color:var(--mut);transition:transform .15s}
+.acc.open>button i{transform:rotate(90deg)}
+.acc .body{padding:4px 16px 16px;display:flex;flex-direction:column;gap:10px}
+/* Schritte beim Schreiben */
+.steps{display:flex;gap:6px}
+.steps div{flex:1;padding:8px 6px;border-radius:10px;background:var(--soft);color:var(--mut);font-size:13px;font-weight:600;text-align:center;border:1px solid transparent}
+.steps div.now{background:var(--ink);color:var(--ink-t)}
+.steps div.done{color:var(--ok);border-color:var(--line);background:transparent}
+.av .got{position:absolute;top:4px;right:6px;font-style:normal;font-size:13px;background:var(--wall);border-radius:99px;padding:1px 5px;line-height:1.3}
+.cnt{font-size:13px;color:var(--mut);text-align:right}
+/* Karte */
+.stage{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px 18px 20px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.stage.flip{animation:flip .55s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 100%}
+.stage .kind{margin-bottom:12px}
+.stage .for{color:var(--mut);font-size:14px;margin-top:6px}
+.stage .who2{font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
+.stage hr{width:100%;border:0;border-top:1px solid var(--line);margin:14px 0 10px}
+.stage .txt{font-size:24px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.stage .rule{color:var(--mut);font-size:14px;margin-top:10px}
+/* Meldung */
+#toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100vw - 32px)}
+#toast div{background:#EDEDED;color:#121212;font-size:14px;font-weight:600;padding:10px 16px;border-radius:99px;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:fade .2s ease both}
 @keyframes wig{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @keyframes fly{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1}100%{transform:translateY(-55vh) scale(1.4) rotate(14deg);opacity:0}}
@@ -138,6 +173,7 @@ body.inroom #app{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 <body>
 <div id="app"></div>
 <div id="chat"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="qrcode.js"></script>
 <script>
@@ -316,7 +352,7 @@ async function getWake(){
 }
 function fail(m){cleanup();err=m;render()}
 /* Verbindungstest: findet heraus, ob Webzugang, WebSocket und WebRTC zum Vermittlungsserver klappen */
-const BUILD="2026-11-01.8";
+const BUILD="2026-11-05.1";
 const timeoutP=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),ms));
 async function runDiag(){
   diag={lines:[],done:false,sum:""};
@@ -688,6 +724,19 @@ function send(m){
 /* ---------- Ansichten ---------- */
 const me = () => S&&S.players.find(p=>p.id===pid);
 const isHost = () => S&&S.hostPid===pid;
+let toastT=null;
+function toast(msg){
+  const el=document.getElementById("toast");if(!el)return;
+  const d=document.createElement("div");d.textContent=msg;el.appendChild(d);
+  while(el.children.length>2)el.firstChild.remove();
+  setTimeout(()=>d.remove(),2600);
+}
+const dock=inner=>`<div class="dock">${inner}</div>`;
+let openSec={mode:true};
+function acc(id,title,sum,body){
+  const o=!!openSec[id];
+  return `<div class="card acc ${o?"open":""}"><button data-a="acc" data-v="${id}" aria-expanded="${o}"><span><b>${title}</b><small>${sum}</small></span><i>›</i></button>${o?`<div class="body">${body}</div>`:""}</div>`;
+}
 function header(){
   return `<header><span class="brand">${logo()}Round Two</span><span>${S?`Raum ${esc(S.code)} · `:""}<button class="link" data-a="snd" aria-label="Ton">${snd?"🔔":"🔕"}</button> <button class="link" data-a="leave">Verlassen</button></span></header>`;
 }
@@ -718,27 +767,33 @@ function vHome(){
 function vLobby(){
   const h=isHost(),on=S.players.filter(p=>p.online).length;
   const link=location.origin+location.pathname+"?r="+S.code;
+  const need=Math.max(0,3-on);
+  const q=openSec.qr?qrSvg(link):"";
   let h2=`${header()}<div class="card c"><p class="mut c" style="font-size:13px">Raum-Code</p><div class="code">${[...S.code].map(ch=>`<b>${esc(ch)}</b>`).join("")}</div>
-    ${(()=>{const q=qrSvg(link);return q?`<div class="qrbox">${q}<p class="mut" style="font-size:13px">Scannen zum Beitreten</p></div>`:""})()}
-    <div class="row" style="margin-top:12px"><button class="btn sec" data-a="share">Link teilen</button></div></div>
-  <div class="card"><h2>Spieler (${S.players.length})</h2>${S.players.map(p=>`<div class="pl"><span class="who"><span class="dot ${p.online?"":"off"}" style="margin-right:0"></span>${face(p.id,p.name,"f28")}${esc(p.name)}${p.id===S.hostPid?' <span class="mut">· Host</span>':""}</span></div>`).join("")}
-    ${on<3?`<p class="mut" style="margin-top:10px;font-size:14px">Mindestens 3 Spieler nötig.</p>`:""}</div>`;
+    ${q?`<div class="qrbox">${q}<p class="mut" style="font-size:13px">Scannen zum Beitreten</p></div>`:""}
+    <div class="row" style="margin-top:14px"><button class="btn sec" data-a="share">Link teilen</button><button class="btn sec" data-a="acc" data-v="qr">${openSec.qr?"QR-Code ausblenden":"QR-Code zeigen"}</button></div></div>
+  <div class="card"><h2>Spieler (${S.players.length})</h2>${S.players.map(p=>`<div class="pl"><span class="who"><span class="dot ${p.online?"":"off"}" style="margin-right:0"></span>${face(p.id,p.name,"f28")}${esc(p.name)}${p.id===S.hostPid?' <span class="mut">· Host</span>':""}</span></div>`).join("")}</div>`;
+  let bar;
   if(h){
-    h2+=`<div class="card stack"><h2>Modus</h2>${Object.entries(MODES).map(([k,n])=>`<button class="opt ${S.mode===k?"on":""}" data-a="mode" data-v="${k}"><span class="who"><span class="emo">${MODEI[k]}</span><span>${n}<br><small>${MODEX[k]}</small></span></span>${S.mode===k?'<span class="ck">✓</span>':""}</button>`).join("")}
-    <p class="mut" style="font-size:14px">${MODEH[S.mode]}</p>
-    ${S.mode==="gossip"?`<h2 style="margin-top:6px">Durchgänge</h2><div class="seg">${[1,2,3].map(n=>`<button class="${S.passes===n?"on":""}" data-a="passes" data-v="${n}">${n}</button>`).join("")}</div>`:`<h2 style="margin-top:6px">Runden</h2><div class="seg">${[5,10,15,20,30].map(n=>`<button class="${S.rounds===n?"on":""}" data-a="rounds" data-v="${n}">${n}</button>`).join("")}</div>`}</div>
-    <div class="card stack"><h2>Gesperrte Wörter</h2>
-      <div class="chips">${H.banned.map(w=>`<span class="chip">${esc(w)}<button data-a="unban" data-v="${esc(w)}" aria-label="Entfernen">✕</button></span>`).join("")||'<span class="mut" style="font-size:14px">Keine</span>'}</div>
+    const nc=Object.keys(CATS).length;
+    h2+=acc("mode","Modus",`${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}`,
+      `${Object.entries(MODES).map(([k,n])=>`<button class="opt ${S.mode===k?"on":""}" data-a="mode" data-v="${k}"><span class="who"><span class="emo">${MODEI[k]}</span><span>${n}<br><small>${MODEX[k]}</small></span></span>${S.mode===k?'<span class="ck">✓</span>':""}</button>`).join("")}
+      <p class="mut" style="font-size:14px">${MODEH[S.mode]}</p>
+      <h2 style="margin:6px 0 0">${S.mode==="gossip"?"Durchgänge":"Runden"}</h2><div class="seg">${(S.mode==="gossip"?[1,2,3]:[5,10,15,20,30]).map(n=>`<button class="${(S.mode==="gossip"?S.passes:S.rounds)===n?"on":""}" data-a="${S.mode==="gossip"?"passes":"rounds"}" data-v="${n}">${n}</button>`).join("")}</div>`);
+    h2+=acc("cats","Kategorien",`${S.cats.length} von ${nc} aktiv`,
+      `${Object.entries(CATS).map(([k,c])=>`<button class="opt ${S.cats.includes(k)?"on":""}" data-a="cat" data-v="${k}"><span class="who"><span class="emo">${c.e}</span><span>${esc(c.n)}<br><small>${esc(c.d)}</small></span></span>${S.cats.includes(k)?'<span class="ck">✓</span>':""}</button>`).join("")}
+      <div class="row"><button class="btn sec" data-a="allcats">Alle</button><button class="btn sec" data-a="nocats">Keine</button></div>`);
+    h2+=acc("ban","Gesperrte Wörter",H.banned.length?H.banned.length+" gesperrt":"Keine",
+      `<div class="chips">${H.banned.map(w=>`<span class="chip">${esc(w)}<button data-a="unban" data-v="${esc(w)}" aria-label="Entfernen">✕</button></span>`).join("")||'<span class="mut" style="font-size:14px">Keine Wörter gesperrt.</span>'}</div>
       <div class="row" style="align-items:stretch"><input type="text" id="bw" maxlength="30" placeholder="Wort sperren" autocomplete="off"><button class="btn sec" data-a="ban" style="width:96px;flex:none;padding:8px">Sperren</button></div>
-      <p class="mut" style="font-size:13px">Diese Wörter werden in allen Texten automatisch durch „...“ ersetzt (Groß- und Kleinschreibung egal). Nur du siehst die Liste.</p></div>
-    <div class="card stack"><h2>Kategorien</h2>${Object.entries(CATS).map(([k,c])=>`<button class="opt ${S.cats.includes(k)?"on":""}" data-a="cat" data-v="${k}"><span class="who"><span class="emo">${c.e}</span><span>${esc(c.n)}<br><small>${esc(c.d)}</small></span></span>${S.cats.includes(k)?'<span class="ck">✓</span>':""}</button>`).join("")}
-      <div class="row"><button class="btn sec" data-a="allcats">Alle</button><button class="btn sec" data-a="nocats">Keine</button></div></div>
-    <button class="btn" data-a="start" ${on<3||!S.cats.length?"disabled":""}>Spiel starten</button>`;
+      <p class="mut" style="font-size:13px">Diese Wörter werden in allen Texten automatisch durch „...“ ersetzt (Groß- und Kleinschreibung egal). Nur du siehst die Liste.</p>`);
+    const why=need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}`:!S.cats.length?"Wähle mindestens eine Kategorie":"";
+    bar=dock(`${why?`<p>${why}</p>`:""}<button class="btn" data-a="start" ${on<3||!S.cats.length?"disabled":""}>Spiel starten</button>`);
   } else {
-    h2+=`<div class="card"><h2>Einstellungen</h2><p>${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}</p><p class="mut" style="font-size:14px;margin-top:4px">${S.cats.map(k=>esc(CATS[k].n)).join(", ")||"Keine Kategorie"}</p></div>
-    <p class="mut c">Warte, bis ${esc(pname(S.hostPid))} das Spiel startet …</p>`;
+    h2+=`<div class="card"><h2>Einstellungen</h2><p>${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}</p><p class="mut" style="font-size:14px;margin-top:4px">${S.cats.map(k=>esc(CATS[k].n)).join(", ")||"Keine Kategorie"}</p></div>`;
+    bar=dock(`<p>${need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}. `:""}Warte, bis ${esc(pname(S.hostPid))} das Spiel startet …</p>`);
   }
-  return h2;
+  return h2+bar;
 }
 function rhead(){
   const r=S.round;
@@ -749,7 +804,7 @@ function rhead(){
 const KINDS=[{k:"challenge",n:"Challenge",f:"Aufgabe für",e:"🎯",c:"#6B6B73"},{k:"question",n:"Frage",f:"Frage an",e:"💬",c:"#6B6B73"},{k:"gossip",n:"Gerücht",f:"Gerücht über",e:"🤫",c:"#6B6B73"}];
 const KCARD={challenge:{l:"Challenge für",r:"Machen oder trinken."},question:{l:"Frage an",r:"Ehrlich antworten oder trinken."},gossip:{l:"Gerücht über",r:"Stimmt es? Ehrlich sagen oder trinken."}};
 let draft={key:""};
-function newDraft(key){return {key,stage:0,target:null,text:""}}
+function newDraft(key){return {key,stage:0,target:null,text:"",sent:[]}}
 function wstText(){
   const req=required(),got=S.answered.filter(id=>req.includes(id)).length;
   return {got,txt:`${got} / ${req.length} fertig`};
@@ -757,30 +812,33 @@ function wstText(){
 function vWrite(){
   const key=S.code+S.gen;if(draft.key!==key)draft=newDraft(key);
   const w=wstText(),tag=`<div class="tag">Gossip Wheel${S.passes>1?` · Durchgang ${S.pass+1} / ${S.passes}`:""}</div>`;
-  const foot=`<p class="c mut" style="font-size:13px">🤐 Niemand sieht, von wem es kommt.</p><p class="c mut" id="wst" style="font-size:14px">${w.txt}</p>
+  const foot=`<p class="c mut" id="wst" style="font-size:14px">${w.txt}</p>
   ${isHost()?`<button class="btn sec" id="gob" data-a="go" ${S.nsub?"":"disabled"}>Weiter zu den Karten</button>`:""}`;
-  if(draft.stage>=3)return `${header()}${tag}<div class="grow stack" style="justify-content:center"><div class="card c"><p style="font-size:20px;font-weight:700">Fertig</p><p class="mut" style="font-size:14px">Warte auf die anderen …</p></div></div>${foot}`;
+  if(draft.stage>=3)return `${header()}${tag}<div class="grow stack" style="justify-content:center"><div class="card c"><p style="font-size:20px;font-weight:700">Fertig</p><p class="mut" style="font-size:14px">Warte auf die anderen. Niemand sieht, von wem was kommt.</p></div></div>${foot}`;
   const K=KINDS[draft.stage],others=S.players.filter(p=>p.id!==pid),n=others.length;
   const t=others.find(p=>p.id===draft.target);
-  const ring=others.map((p,i)=>{
-    const a=2*Math.PI*i/n-Math.PI/2,nm=p.name.length>9?p.name.slice(0,8)+"…":p.name;
-    return `<button class="av ${p.id===draft.target?"on":""}" data-a="pick" data-v="${esc(p.id)}">${face(p.id,p.name,"f44")}<span>${esc(nm)}</span></button>`;
+  const steps=`<div class="steps">${KINDS.map((k,i)=>`<div class="${i<draft.stage?"done":i===draft.stage?"now":""}">${i<draft.stage?"✓ ":""}${k.n}</div>`).join("")}</div>`;
+  const ring=others.map(p=>{
+    const nm=p.name.length>9?p.name.slice(0,8)+"…":p.name;
+    const got=draft.sent.filter(s=>s.id===p.id).map(s=>KINDS[s.stage].e).join("");
+    return `<button class="av ${p.id===draft.target?"on":""}" data-a="pick" data-v="${esc(p.id)}">${got?`<i class="got" title="Schon bekommen">${got}</i>`:""}${face(p.id,p.name,"f44")}<span>${esc(nm)}</span></button>`;
   }).join("");
-  const form=t?`<div class="card stack"><h2>${K.f} ${esc(t.name)}</h2>
+  const form=t?`<div class="card stack" id="wform"><h2>${K.f} ${esc(t.name)}</h2>
     <textarea id="ft" maxlength="140" placeholder="${K.n} schreiben …">${esc(draft.text)}</textarea>
-    <div class="row"><button class="btn sec" data-a="fill">Zufall</button><button class="btn" id="sb" data-a="sendsub" ${draft.text.trim()?"":"disabled"}>Senden</button></div></div>`
-    :`<p class="c mut">Tippe auf eine Person.</p>`;
-  return `${header()}${tag}<span class="kind" style="--k:${K.c};align-self:flex-start">${K.e} Schritt ${draft.stage+1} / 3 · ${K.n}</span>
-  <div class="ring"><div class="mid"><b>${K.e}</b>Wer?</div>${ring}</div>${form}${foot}`;
+    <div class="cnt" id="cnt">${draft.text.length} / 140</div>
+    <div class="row"><button class="btn sec" data-a="fill">Vorschlag</button><button class="btn" id="sb" data-a="sendsub" ${draft.text.trim()?"":"disabled"}>Senden</button></div></div>`
+    :`<p class="c mut">Wen soll es treffen? Tippe auf eine Person.</p>`;
+  return `${header()}${tag}${steps}
+  <div class="ring"><div class="mid">${K.e} Wer?</div>${ring}</div>${form}${foot}`;
 }
+function cardProg(i,n){return `<div class="prog" aria-label="Karte ${i} von ${n}"><i style="width:${i/n*100}%"></i></div>`}
 function vCard(){
   const c=S.card,tg=c.target===pid,K=KCARD[c.kind],KD=KINDS.find(x=>x.k===c.kind);
   const last=c.i+1>=c.n;
-  return `${header()}<div class="tag">Gossip Wheel · Karte ${c.i+1} / ${c.n}${S.passes>1?` · Durchgang ${c.pass+1} / ${S.passes}`:""}</div>
-  <div class="card c kcard" style="--k:${KD.c};padding-top:28px"><span class="kind sticker" style="--k:${KD.c}">${KD.e} ${KD.n} · anonym</span>${face(c.target,pname(c.target),"f88")}<p class="mut" style="font-size:13px;margin-top:8px;font-weight:700">${K.l}</p><p class="nm" style="font-size:34px;font-weight:800">${tg?"dich":esc(pname(c.target))}</p></div>
-  <div class="blk" style="--k:${KD.c}"><p>${esc(c.text)}</p><p class="mut" style="font-size:14px;font-weight:600;margin-top:6px">${K.r}</p></div>
+  return `${header()}${cardProg(c.i+1,c.n)}<div class="tag">Gossip Wheel · Karte ${c.i+1} / ${c.n}${S.passes>1?` · Durchgang ${c.pass+1} / ${S.passes}`:""}</div>
+  <div class="stage"><span class="kind">${KD.e} ${KD.n} · anonym</span>${face(c.target,pname(c.target),"f64")}<p class="for">${K.l}</p><p class="who2">${tg?"dich":esc(pname(c.target))}</p><hr><p class="txt">${esc(c.text)}</p><p class="rule">${K.r}</p></div>
   <div class="grow"></div>
-  ${isHost()?`<button class="btn" data-a="gnext">${last?(S.pass+1<S.passes?"Nächster Durchgang":"Fertig"):"Weiter"}</button>`:`<p class="mut c">Warte auf ${esc(pname(S.hostPid))} …</p>`}`;
+  ${dock(isHost()?`<button class="btn" data-a="gnext">${last?(S.pass+1<S.passes?"Nächster Durchgang":"Fertig"):"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
 }
 function vAnswer(){
   const r=S.round,need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
@@ -795,7 +853,7 @@ function vAnswer(){
 function vReveal(){
   const r=S.round,v=S.reveal;
   const last=r.idx+1>=S.total;
-  const nextBtn=isHost()?`<button class="btn" data-a="next">${last?"Fertig":"Weiter"}</button>`:`<p class="mut c">Warte auf ${esc(pname(S.hostPid))} …</p>`;
+  const nextBtn=dock(isHost()?`<button class="btn" data-a="next">${last?"Fertig":"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`);
   if(r.type==="never"){
     const n=v.yes.length,tot=v.yes.length+v.no.length;
     const rows=S.players.filter(p=>v.yes.includes(p.id)||v.no.includes(p.id)).sort((a,b)=>v.yes.includes(b.id)-v.yes.includes(a.id));
@@ -820,16 +878,32 @@ function vChoose(){
 }
 function vTcard(){
   const r=S.round,K=TOD[r.kind],me=r.target===pid,last=r.idx+1>=S.total;
-  return `${rhead()}<div class="card c kcard" style="--k:${K.c};padding-top:28px"><span class="kind sticker" style="--k:${K.c}">${K.e} ${K.n}</span>${face(r.target,pname(r.target),"f88")}<p class="mut" style="font-size:13px;margin-top:8px;font-weight:700">${r.kind==="truth"?"Frage an":"Challenge für"}</p><p class="nm" style="font-size:34px;font-weight:800">${me?"dich":esc(pname(r.target))}</p></div>
-  <div class="blk" style="--k:${K.c}"><p>${esc(r.text)}</p><p class="mut" style="font-size:14px;font-weight:600;margin-top:6px">${K.r}</p></div>
+  return `${rhead()}<div class="stage"><span class="kind">${K.e} ${K.n}</span>${face(r.target,pname(r.target),"f64")}<p class="for">${r.kind==="truth"?"Frage an":"Challenge für"}</p><p class="who2">${me?"dich":esc(pname(r.target))}</p><hr><p class="txt">${esc(r.text)}</p><p class="rule">${K.r}</p></div>
   <div class="grow"></div>
-  ${isHost()?`<button class="btn" data-a="next">${last?"Fertig":"Weiter"}</button>`:`<p class="mut c">Warte auf ${esc(pname(S.hostPid))} …</p>`}`;
+  ${dock(isHost()?`<button class="btn" data-a="next">${last?"Fertig":"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
 }
 function vEnd(){
   const cf=Array.from({length:30},(_,i)=>`<i class="cf" style="left:${(i*37+11)%100}%;background:${PAL[i%PAL.length]};animation-duration:${(3+(i%5)*.6).toFixed(1)}s;animation-delay:-${((i*13)%20/10).toFixed(1)}s"></i>`).join("");
   return `<div class="confetti">${cf}</div>${header()}<span class="drink c" style="margin-top:18px">🥂</span><h1 class="c" style="margin-top:8px">Prost!</h1><p class="mut c">Das war die Runde. Nochmal oder was anderes?</p>
   <div class="grow"></div>
-  ${isHost()?`<button class="btn" data-a="again">Zurück zur Lobby</button>`:`<p class="mut c">Warte auf ${esc(pname(S.hostPid))} …</p>`}`;
+  ${dock(isHost()?`<button class="btn" data-a="again">Zurück zur Lobby</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
+}
+/* Kleine Hinweise: wer kommt/geht, Verbindung weg/wieder da, Vibration bei eigener Karte */
+function notices(){
+  if(!S){render.pl=null;render.lost=false;return}
+  const cur={};S.players.forEach(p=>{cur[p.id]={n:p.name,on:p.online!==false}});
+  if(render.pl&&render.plc===S.code){
+    for(const id in cur){
+      if(id===pid)continue;
+      if(!render.pl[id])toast(cur[id].n+" ist beigetreten");
+      else if(render.pl[id].on&&!cur[id].on)toast(cur[id].n+" ist offline");
+      else if(!render.pl[id].on&&cur[id].on)toast(cur[id].n+" ist wieder da");
+    }
+    for(const id in render.pl)if(!cur[id]&&id!==pid)toast(render.pl[id].n+" hat den Raum verlassen");
+  }
+  render.pl=cur;render.plc=S.code;
+  if(render.lost!==undefined&&render.lost!==lost)toast(lost?"Verbindung verloren":"Wieder verbunden");
+  render.lost=lost;
 }
 function render(force){
   chatSync();
@@ -850,18 +924,22 @@ function render(force){
     else if(S.phase==="tcard")html=vTcard();
     else if(S.phase==="reveal")html=vReveal();
     else html=vEnd();
-    if(lost)html=`<div class="err">Verbindung verloren. <button class="link" data-a="reconnect" style="color:var(--text);text-decoration:underline">Neu verbinden</button></div>`+html;
+    if(lost)html=`<div class="err" role="alert"><b>Verbindung verloren.</b> Wir versuchen es automatisch weiter.<br><button class="link" data-a="reconnect" style="color:var(--text);padding-left:0">Jetzt neu verbinden</button></div>`+html;
   }
   const key=S?S.code+S.phase+(S.round?S.round.idx:"")+(S.card?S.card.i:"")+(S.pass||""):"";
   if(mine!==null&&render.k!==key)mine=null;
-  if(S&&S.phase!=="lobby"&&render.sk!==undefined&&render.sk!==key)ping("card");
+  if(S&&S.phase!=="lobby"&&render.sk!==undefined&&render.sk!==key){ping("card");const tgt=S.card?S.card.target:S.round?S.round.target:null;if(tgt===pid&&(S.phase==="card"||S.phase==="tcard"))buzz([90,50,90,50,160])}
   render.sk=S?key:undefined;
   render.k=key;
+  notices();
   render.w=S&&S.phase==="write"?S.code+S.gen:"";
   if(html===render.h)return;
   render.h=html;
   $app.innerHTML=html;
-  if(render.ak!==role+"|"+key){render.ak=role+"|"+key;$app.classList.remove("enter");void $app.offsetWidth;$app.classList.add("enter")}
+  document.body.classList.toggle("hasdock",html.includes('class="dock"'));
+  const fresh=render.ak!==role+"|"+key;
+  if(fresh){render.ak=role+"|"+key;$app.classList.remove("enter");void $app.offsetWidth;$app.classList.add("enter")}
+  if(fresh){const st=$app.querySelector(".stage");if(st)st.classList.add("flip")}
   if(S&&S.phase==="reveal")requestAnimationFrame(()=>requestAnimationFrame(()=>$app.querySelectorAll("[data-w]").forEach(e=>e.style.width=e.dataset.w+"%")));
 }
 
@@ -946,7 +1024,7 @@ document.getElementById("chat").addEventListener("keydown",e=>{
 const A = {
   diag(){runDiag()},
   diagback(){diag=null;render(true)},
-  async diagcopy(){const x=diagText();try{await navigator.clipboard.writeText(x);alert("Kopiert. Du kannst es jetzt in den Chat einfügen.")}catch(e){prompt("Text kopieren:",x)}},
+  async diagcopy(){const x=diagText();try{await navigator.clipboard.writeText(x);toast("Kopiert. Jetzt im Chat einfügen.")}catch(e){prompt("Text kopieren:",x)}},
   install(){const d=deferredInstall;if(!d)return;deferredInstall=null;d.prompt();render(true)},
   pickimg(){const i=document.getElementById("fi");if(i)i.click()},
   rmimg(){keepName();myAv="";ls.set("ex_av","");render(true)},
@@ -968,7 +1046,8 @@ const A = {
   ban(){const i=document.getElementById("bw");if(!i)return;const w=i.value.trim();if(!w)return;send({t:"ban",op:"add",w});},
   unban(d){send({t:"ban",op:"del",w:d.v})},
   start(){send({t:"start"})},
-  pick(d){draft.target=d.v;render(true)},
+  acc(d){openSec[d.v]=!openSec[d.v];render(true)},
+  pick(d){draft.target=d.v;render(true);const f=document.getElementById("wform");if(f){f.scrollIntoView({block:"center",behavior:"smooth"});const x=document.getElementById("ft");if(x)x.focus({preventScroll:true})}},
   fill(){
     const K=KINDS[draft.stage],nm=draft.target?pname(draft.target):"";
     const k2=pick(S.cats);
@@ -977,6 +1056,8 @@ const A = {
   sendsub(){
     if(!draft.target||!draft.text.trim())return;
     send({t:"sub",kind:KINDS[draft.stage].k,target:draft.target,text:draft.text});
+    toast(KINDS[draft.stage].n+" für "+pname(draft.target)+" gesendet");
+    draft.sent.push({stage:draft.stage,id:draft.target});
     draft.stage++;draft.target=null;draft.text="";render(true)},
   go(){send({t:"go"})},
   gnext(){send({t:"gnext"})},
@@ -987,7 +1068,7 @@ const A = {
   async share(){
     const url=location.origin+location.pathname+"?r="+S.code,text="Komm zu Round Two: "+S.code;
     try{if(navigator.share){await navigator.share({title:"Round Two",text,url});return}}catch(e){if(e&&e.name==="AbortError")return}
-    try{await navigator.clipboard.writeText(url);alert("Link kopiert.")}catch(e){prompt("Link kopieren:",url)}
+    try{await navigator.clipboard.writeText(url);toast("Link kopiert")}catch(e){prompt("Link kopieren:",url)}
   }
 };
 $app.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(b&&!b.disabled&&A[b.dataset.a])A[b.dataset.a](b.dataset)});
@@ -1002,6 +1083,7 @@ $app.addEventListener("input",e=>{
   if(e.target.id!=="ft")return;
   draft.text=e.target.value;
   const b=document.getElementById("sb");if(b)b.disabled=!draft.text.trim();
+  const c=document.getElementById("cnt");if(c)c.textContent=draft.text.length+" / 140";
 });
 $app.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="cd")A.join();if(e.key==="Enter"&&e.target.id==="bw")A.ban()});
 
