@@ -23,3 +23,6 @@ dann `http://127.0.0.1:8099/` öffnen. Die Seite ist komplett statisch, auf GitH
 
 ## Design
 Schlicht und dunkel, nur Systemschrift. Es werden keine Schriften von Fremdservern geladen.
+
+## Verbindung
+Die Handys verbinden sich direkt (PeerJS/WebRTC). Wenn das im eigenen Netz blockiert ist, nutzt das Spiel automatisch einen Ersatzweg: Die Nachrichten laufen dann verschlüsselt über öffentliche MQTT-Server (`broker.emqx.io`, `broker.hivemq.com`, `test.mosquitto.org`). Der erste erreichbare Server wird genommen.
