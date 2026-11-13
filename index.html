@@ -229,15 +229,20 @@ const CATS = {
     "Wer hat am ehesten schon mal geklaut?","Wer hat am ehesten schon mal bei einer Prüfung betrogen?","Wer lügt am häufigsten ohne Grund?","Wer hat am ehesten schon mal jemandem das Herz gebrochen?","Wer würde am ehesten ein Geheimnis für Geld verraten?","Wer hat am ehesten schon mal einen Freund hintergangen?","Wer würde am ehesten einen Unfall verursachen und abhauen?","Wer hat am ehesten schon mal Social Media eines Ex gehackt?","Wer hat am ehesten schon mal was in einem Laden mitgehen lassen?","Wer würde am ehesten ein Erbe zurückhalten?","Wer hat am ehesten schon mal ein Date geghostet?","Wer ist am ehesten ein Gossip-Spion?","Wer würde am ehesten bei einem Streit lügen, um zu gewinnen?","Wer hat das größte schlechte Gewissen in diesem Raum?","Wer hat am ehesten schon mal etwas Wichtiges versprochen und nicht gehalten?","Wer würde am ehesten ein Geheimnis für Geld verkaufen?","Wer hat am ehesten schon mal ein Gerücht in die Welt gesetzt?","Wer würde am ehesten bei einem Unfall wegsehen?","Wer hat am ehesten schon mal bei einer Rechnung getrickst?","Wer lügt am ehesten bei einer Entschuldigung?","Wer hat am ehesten schon mal jemandem den Job ausgespannt?","Wer würde am ehesten ein Erbe fälschen?","Wer hat am ehesten schon mal Schadenfreude gespürt, als es einem Freund schlecht ging?","Wer hat am ehesten schon mal einen Freund hinter dessen Rücken schlechtgemacht?","Wer würde am ehesten eine Straftat vertuschen?","Wer hat am ehesten schon mal eine Nachricht heimlich gelesen?","Wer würde am ehesten eine Schuld auf andere abwälzen?","Wer hat am ehesten schon mal etwas aus einem Laden mitgehen lassen?","Wer würde am ehesten jemanden bei der Polizei anzeigen?","Wer hat am ehesten schon mal einen Lebenslauf geschönt?","Wer würde am ehesten ein Geheimnis mit ins Grab nehmen?","Wer hat am ehesten schon mal mit Absicht jemanden eifersüchtig gemacht?","Wer ist am ehesten der Typ, der Rache plant?","Wer hat am ehesten schon mal beim Spielen betrogen?"]}
 };
 
-const MODES = {gossip:"Gossip Wheel", likely:"Wer am ehesten", never:"Ich hab noch nie", tod:"Wahrheit oder Pflicht"};
-const MODEI = {gossip:"🎡", likely:"🗳️", never:"🙋", tod:"🎭"};
-const MODEX = {gossip:"Challenge, Frage und Gerücht schreiben", likely:"Wer passt am ehesten?", never:"Wer es schon gemacht hat, trinkt", tod:"Reihum: Wahrheit oder Pflicht"};
+const MODES = {gossip:"Gossip Wheel", likely:"Wer am ehesten", never:"Ich hab noch nie", tod:"Wahrheit oder Pflicht", tl:"Zwei Wahrheiten, eine Lüge", imp:"Imposter"};
+const MODEI = {gossip:"🎡", likely:"🗳️", never:"🙋", tod:"🎭", tl:"🤥", imp:"🕵️"};
+const MODEX = {gossip:"Challenge, Frage und Gerücht schreiben", likely:"Wer passt am ehesten?", never:"Wer es schon gemacht hat, trinkt", tod:"Reihum: Wahrheit oder Pflicht", tl:"Welche Aussage ist gelogen?", imp:"Wer kennt das geheime Wort nicht?"};
 const MODEH = {
   gossip:"Alle schreiben gleichzeitig: erst eine Person wählen und ihr eine Challenge geben, dann eine Frage, dann ein Gerücht. Danach wird Karte für Karte aufgedeckt (ohne Absender), der Host drückt Weiter. Wer nicht ehrlich antwortet oder die Challenge nicht macht, trinkt.",
   likely:"Alle wählen geheim, wer am ehesten zur Frage passt. Wer am häufigsten gewählt wird, trinkt.",
   never:"Ein Satz beginnt mit „Ich hab noch nie …“. Alle tippen geheim, ob sie es schon gemacht haben. Wer „Hab ich“ tippt, trinkt.",
-  tod:"Reihum ist jemand dran und wählt Wahrheit oder Pflicht. Ehrlich antworten oder die Challenge machen, sonst trinkt die Person."
+  tod:"Reihum ist jemand dran und wählt Wahrheit oder Pflicht. Ehrlich antworten oder die Challenge machen, sonst trinkt die Person.",
+  tl:"Jeder schreibt drei Aussagen über sich, zwei wahr und eine gelogen. Danach ist jede Person einmal dran, die anderen raten geheim, welche Aussage gelogen ist. Wer falsch rät, trinkt. Rät niemand richtig, trinkt der Erzähler.",
+  imp:"Alle bekommen privat dasselbe Wort, nur der Imposter kennt es nicht und sieht nur die Kategorie. Reihum sagt jeder laut einen Hinweis, danach stimmt die Runde ab. Wird der Imposter erwischt, darf er das Wort erraten. Gewinnt der Imposter, trinken alle anderen, sonst trinkt er. Ab 4 Spielern am besten."
 };
+const CATMODES = new Set(["gossip","likely","never","tod"]);
+const modeSum = () => S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.mode==="tl"?"je Person eine Runde":S.rounds+" Runden";
+const WORDS = {"Essen": ["Pizza", "Sushi", "Pommes", "Döner", "Lasagne", "Schokolade", "Pfannkuchen", "Currywurst", "Spaghetti", "Burger", "Eiscreme", "Popcorn", "Brezel", "Müsli", "Pilzsuppe", "Kartoffelsalat", "Gummibärchen", "Ramen", "Käsekuchen", "Croissant"], "Orte": ["Flughafen", "Schwimmbad", "Bibliothek", "Zoo", "Supermarkt", "Kino", "Friedhof", "Strand", "Bahnhof", "Krankenhaus", "Freizeitpark", "Fitnessstudio", "Campingplatz", "Museum", "Tankstelle", "Bäckerei", "Schule", "Disco", "Waschsalon", "Leuchtturm"], "Tiere": ["Elefant", "Pinguin", "Giraffe", "Delfin", "Faultier", "Krokodil", "Eichhörnchen", "Papagei", "Hai", "Känguru", "Igel", "Flamingo", "Oktopus", "Wolf", "Biene", "Schildkröte", "Fledermaus", "Ente", "Waschbär", "Nilpferd"], "Berufe": ["Pilot", "Bäcker", "Zahnarzt", "Feuerwehrmann", "Lehrer", "Friseur", "Taucher", "Koch", "Detektiv", "Busfahrer", "Tierarzt", "Schornsteinfeger", "Clown", "Astronaut", "Fotograf", "Zauberer", "Gärtner", "Richter", "Barkeeper", "Kassierer"], "Filme & Serien": ["Titanic", "Harry Potter", "Shrek", "Star Wars", "Der Pate", "Findet Nemo", "Game of Thrones", "Squid Game", "Barbie", "Matrix", "Jurassic Park", "Breaking Bad", "Frozen", "Herr der Ringe", "Stranger Things", "Das Dschungelbuch", "Fast & Furious", "Die Simpsons", "Titanic 2", "Toy Story"], "Alltag": ["Zahnbürste", "Regenschirm", "Wecker", "Fernbedienung", "Kaffeemaschine", "Handy-Ladekabel", "Schlüsselbund", "Sonnenbrille", "Rucksack", "Kopfkissen", "Haargummi", "Wasserkocher", "Staubsauger", "Einkaufswagen", "Taschenlampe", "Seife", "Waschmaschine", "Notizbuch", "Kühlschrank", "Fahrradhelm"], "Sport": ["Fußball", "Tennis", "Boxen", "Schwimmen", "Skifahren", "Yoga", "Basketball", "Eishockey", "Golf", "Klettern", "Surfen", "Volleyball", "Reiten", "Radfahren", "Tischtennis", "Handball", "Marathon", "Skateboard", "Bogenschießen", "Turnen"], "Party": ["Karaoke", "Luftballon", "Discokugel", "Flaschendrehen", "Bierpong", "Konfetti", "Cocktail", "Polonaise", "Torte", "Geburtstagskerze", "Gästeliste", "Silvester", "Kater", "Tanzfläche", "Partyhut", "DJ", "Shots", "Stuhltanz", "Fotobox", "Wunderkerze"], "Reisen": ["Rucksack", "Reisepass", "Hotel", "Zelt", "Kreuzfahrt", "Koffer", "Landkarte", "Sonnencreme", "Stadtführung", "Mietwagen", "Jetlag", "Souvenir", "Hostel", "Wohnmobil", "Fähre", "Zugfahrt", "Flugticket", "Strandkorb", "Schnorchel", "Reiseführer"], "Natur": ["Vulkan", "Regenbogen", "Wasserfall", "Wüste", "Gewitter", "Nordlicht", "Dschungel", "Gletscher", "Höhle", "Sonnenuntergang", "Nebel", "Lagerfeuer", "Schneemann", "Wiese", "Insel", "Sternschnuppe", "Korallenriff", "Sanddüne", "Bergsee", "Schmetterling"]};
 /* "Ich hab noch nie ..." (je Kategorie) */
 const NIE = {
 harmlos:["im Kino geweint.","ein Geschenk weiterverschenkt.","eine ganze Serienstaffel in einer Nacht geschaut.","einen Termin komplett verschlafen.","mit meinem Haustier wie mit einem Menschen gesprochen.","am Strand eine Sandburg gebaut und danach darauf geschlafen.","ein Pfund Gummibärchen auf einmal gegessen.","bei einem Spiel absichtlich verloren.","einen ganzen Tag nur im Bett verbracht.","meinen eigenen Geburtstag vergessen.","mit Fremden im Aufzug gesungen.","einen Regenschirm gekauft, nur weil es regnete.","mich im Supermarkt verlaufen.","ein Selfie mit einem Promi gemacht.","eine Pflanze vertrocknen lassen.","im Bett gefrühstückt und gekrümelt.","mit dem Bademantel zum Briefkasten gegangen.","auf einem Konzert mitgeheult.","meinen Schlüssel eingeschlossen.","einen Wecker gestellt und danach ausgemacht.","ein Auto mit Schlüsselanhänger verwechselt.","im Schlaf gesprochen.","mir nachts Essen bestellt, obwohl ich nicht hungrig war.","mit dem Handy in der Hand das Handy gesucht.","ein Buch nur wegen des Covers gekauft.","in einem Hotel die Seife mitgenommen."],
@@ -374,7 +379,7 @@ function cleanup(){
   try{relay&&relay.close()}catch(e){}relay=null;
   if(jg){try{jg.stop()}catch(e){}jg=null}
   try{wake&&wake.release()}catch(e){}wake=null;
-  AV={};chat=[];unread=0;chatOpen=false;peer=null;conn=null;conns={};S=null;H=null;role=null;lost=false;mine=null;status="";ss.del("ex_room");
+  myRole=null;showRole=true;tlSent=false;AV={};chat=[];unread=0;chatOpen=false;peer=null;conn=null;conns={};S=null;H=null;role=null;lost=false;mine=null;status="";ss.del("ex_room");
   try{localStorage.removeItem("ex_host")}catch(e){}
 }
 /* Display wach halten, solange man im Raum ist (verhindert Sperrbildschirm) */
@@ -383,7 +388,7 @@ async function getWake(){
 }
 function fail(m){cleanup();err=m;render()}
 /* Verbindungstest: findet heraus, ob Webzugang, WebSocket und WebRTC zum Vermittlungsserver klappen */
-const BUILD="2026-11-13.1";
+const BUILD="2026-12-04.1";
 const timeoutP=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),ms));
 async function runDiag(){
   diag={lines:[],done:false,sum:""};
@@ -615,7 +620,7 @@ function hostRoom(name,restore){
     inited=true;
     if(restore){
       S=restore.S;H=Object.assign(restore.H,{timer:null,pending:false,rate:{}});H.av=H.av||{};
-      H.chat=H.chat||[];H.cn=H.cn||0;H.done=H.done||{};H.items=H.items||[];
+      H.chat=H.chat||[];H.cn=H.cn||0;H.done=H.done||{};H.items=H.items||[];H.stats=H.stats||{drinks:{},cards:{},cardsPlayed:0,tod:{truth:0,dare:0},fooled:{},impWins:{},impPlays:{}};H.tl=H.tl||{};H.votes=H.votes||{};H.seen=H.seen||{};
       if(H.subs){
         Object.values(H.subs).forEach(s=>{for(const k in s)H.items.push({kind:k,target:s[k].target,text:s[k].text})});
         Object.keys(H.subs).forEach(id=>{H.done[id]={};for(const k in H.subs[id])H.done[id][k]=true});
@@ -625,7 +630,7 @@ function hostRoom(name,restore){
       S.players.forEach(x=>{if(x.id!==S.hostPid){x.online=false;x.off=Date.now()}else x.online=true});
     } else {
       S={code,hostPid:pid,phase:"lobby",players:[{id:pid,name,online:true}],mode:"gossip",cats:Object.keys(CATS),rounds:10,passes:1,pass:0,gen:0,nsub:0,round:null,card:null,answered:[],reveal:null};
-      H={answers:{},pool:[],idx:0,timer:null,banned:loadBan(),done:{},items:[],cards:[],ci:0,av:{},chat:[],cn:0,rate:{}};
+      H={answers:{},pool:[],idx:0,timer:null,banned:loadBan(),done:{},items:[],cards:[],ci:0,av:{},chat:[],cn:0,rate:{},stats:{drinks:{},cards:{},cardsPlayed:0,tod:{truth:0,dare:0},fooled:{},impWins:{},impPlays:{}},tl:{},votes:{},seen:{}};
       if(myAv)H.av[pid]=myAv;
     }
     AV=H.av;status="";bc();
@@ -704,6 +709,7 @@ function join(c,d){
   pl.online=true;c._pid=id;conns[id]=c;
   try{c.send({t:"avs",m:H.av})}catch(e){}
   try{c.send({t:"chats",m:H.chat.slice(-30)})}catch(e){}
+  if(S.mode==="imp"&&H.imp&&["irole","ihint","ivote","iguess"].includes(S.phase))sendRole(id);
   if(av)for(const o in conns)if(o!==id)try{conns[o].send({t:"avs",m:{[id]:av}})}catch(e){}
   bc();
 }
@@ -742,8 +748,33 @@ function act(p,d){
       ls.set("ex_ban",JSON.stringify(H.banned));bc();break}
     case "start":
       if(host&&S.phase==="lobby")startGame();break;
+    case "tsub":{
+      if(S.phase!=="tcollect"||H.tl[p])return;
+      const s=(Array.isArray(d.s)?d.s:[]).slice(0,3).map(x=>censor(String(x||"").trim().slice(0,100)));
+      const lie=Number.isInteger(d.lie)?d.lie:-1;
+      if(s.length!==3||s.some(x=>!x)||lie<0||lie>2)return;
+      H.tl[p]={s,lie};S.nsub=Object.keys(H.tl).length;S.answered=Object.keys(H.tl);checkTl();bc();break}
+    case "tgo":
+      if(host&&S.phase==="tcollect")startTlRounds();break;
+    case "isee":
+      if(S.phase!=="irole"||S.mode!=="imp")return;
+      H.seen[p]=true;S.answered=Object.keys(H.seen);checkIRole();bc();break;
+    case "igo":
+      if(host&&S.phase==="irole")startHints();break;
+    case "inext":
+      if(host&&S.phase==="ihint")hintNext();break;
+    case "ivote":
+      if(S.phase!=="ivote"||!S.players.some(x=>x.id===d.v)||d.v===p)return;
+      H.votes[p]=d.v;S.answered=Object.keys(H.votes);checkVotes();bc();break;
+    case "iguess":{
+      if(S.phase!=="iguess"||p!==H.imp.imp)return;
+      const w=S.round.options[+d.v];if(w===undefined)return;
+      resolveImp(w);break}
     case "ans":
       if(S.phase!=="answer")return;
+      if(S.round.type==="tl"){
+        const v=+d.v;if(!Number.isInteger(v)||v<0||v>2||p===S.round.owner)return;
+        H.answers[p]=v;S.answered=Object.keys(H.answers);checkAll();bc();break}
       if(S.round.type==="never"){if(d.v!=="ja"&&d.v!=="nein")return}
       else if(!S.players.some(x=>x.id===d.v)||d.v===p)return;
       H.answers[p]=d.v;S.answered=Object.keys(H.answers);checkAll();bc();break;
@@ -754,7 +785,7 @@ function act(p,d){
     case "tod":{
       if(S.phase!=="choose"||p!==S.round.target||!["truth","dare"].includes(d.v))return;
       const cat=pick(S.cats);
-      S.round.kind=d.v;S.round.cat=cat;S.round.text=d.v==="truth"?pick(QS[cat]):pick(CHAL[cat]);
+      bump(H.stats.tod,d.v);S.round.kind=d.v;S.round.cat=cat;S.round.text=d.v==="truth"?pick(QS[cat]):pick(CHAL[cat]);
       S.phase="tcard";bc();break}
     case "sub":{
       if(S.phase!=="write")return;
@@ -788,15 +819,17 @@ function act(p,d){
       else{const pl=S.players.find(x=>x.id===p);if(pl){pl.online=false;pl.off=Date.now()}}
       delete conns[p];checkAll();checkSubs();bc();break}
     case "again":
-      if(host&&S.phase==="end"){clearTimeout(H.timer);S.phase="lobby";S.round=null;S.card=null;S.reveal=null;S.answered=[];S.players=S.players.filter(x=>x.online);bc()}break;
+      if(host&&S.phase==="end"){clearTimeout(H.timer);S.phase="lobby";S.round=null;S.card=null;S.reveal=null;S.report=null;S.answered=[];S.players=S.players.filter(x=>x.online);bc()}break;
   }
 }
 function startGame(){
   const on=S.players.filter(p=>p.online);
-  if(on.length<3||!S.cats.length)return;
-  S.players=on;
+  if(on.length<3||(!S.cats.length&&CATMODES.has(S.mode)))return;
+  S.players=on;newStats();S.report=null;
   if(S.mode==="gossip"){S.pass=0;return startWrite()}
+  if(S.mode==="tl")return startTl();
   H.bag=[];
+  if(S.mode==="imp"){H.pool=Array(S.rounds).fill(0);H.idx=-1;S.total=S.rounds;H.ibag=[];H.icat=[];H.iused=[];return nextRound()}
   if(S.mode==="tod"){H.pool=Array(S.rounds).fill(0);H.idx=-1;S.total=S.rounds;return nextRound()}
   const pool=[];
   S.cats.forEach(k=>{
@@ -805,6 +838,98 @@ function startGame(){
   });
   H.pool=shuffle(pool).slice(0,S.rounds);H.idx=-1;S.total=H.pool.length;
   nextRound();
+}
+/* ---------- Statistik und Bericht ---------- */
+function addDrink(ids,n){const d=(H.stats.drinks=H.stats.drinks||{});(ids||[]).forEach(id=>{d[id]=(d[id]||0)+(n||1)})}
+const bump=(o,k)=>{o[k]=(o[k]||0)+1};
+function mkReport(){
+  const st=H.stats||{},nmOf=id=>{const p=S.players.find(x=>x.id===id);return p?p.name:null};
+  const top=o=>{const e=Object.entries(o||{}).filter(([id])=>nmOf(id)).sort((a,b)=>b[1]-a[1]);return e.length&&e[0][1]>0?e[0]:null};
+  const facts=[];let drinks=null,note="";
+  const rounds=S.mode==="gossip"?st.cardsPlayed||0:(H.pool?H.pool.length:0);
+  if(["likely","never","tl","imp"].includes(S.mode)){
+    drinks=S.players.map(p=>({n:p.name,id:p.id,c:(st.drinks||{})[p.id]||0})).sort((a,b)=>b.c-a.c);
+    const t=top(st.drinks);
+    facts.push(t?"Am meisten getrunken: "+nmOf(t[0])+" ("+t[1]+"×)":"Laut Spiel musste niemand trinken.");
+  } else note="In diesem Modus entscheidet die Runde selbst, wer trinkt. Das Spiel zählt hier nicht mit.";
+  if(S.mode==="gossip"){const t=top(st.cards);if(t)facts.push("Meiste Karten bekommen: "+nmOf(t[0])+" ("+t[1]+")")}
+  if(S.mode==="tod"){const x=st.tod||{};facts.push("Wahrheit gewählt: "+(x.truth||0)+"×, Pflicht: "+(x.dare||0)+"×")}
+  if(S.mode==="tl"){const t=top(st.fooled);facts.push(t?"Am schwersten zu durchschauen: "+nmOf(t[0])+" ("+t[1]+"× niemand hat die Lüge erkannt)":"Jede Lüge wurde erkannt.")}
+  if(S.mode==="imp"){const t=top(st.impWins);facts.push(t?"Bester Imposter: "+nmOf(t[0])+" ("+t[1]+" Siege von "+((st.impPlays||{})[t[0]]||t[1])+")":"Kein Imposter hat gewonnen.")}
+  return {mode:S.mode,rounds,drinks,note,facts};
+}
+function finish(){S.phase="end";S.round=null;S.card=null;S.answered=[];S.report=mkReport();bc()}
+function newStats(){H.stats={drinks:{},cards:{},cardsPlayed:0,tod:{truth:0,dare:0},fooled:{},impWins:{},impPlays:{}}}
+
+/* ---------- Zwei Wahrheiten, eine Lüge ---------- */
+function startTl(){S.gen++;H.tl={};H.pending=false;S.answered=[];S.nsub=0;S.round=null;S.phase="tcollect";bc()}
+function checkTl(){
+  if(S.phase!=="tcollect"||H.pending)return;
+  const req=required();
+  if(req.length&&req.every(id=>H.tl[id])){H.pending=true;setTimeout(()=>{H.pending=false;if(S.phase==="tcollect")startTlRounds()},1200)}
+}
+function startTlRounds(){
+  const owners=Object.keys(H.tl).filter(id=>S.players.some(x=>x.id===id));
+  if(!owners.length)return;
+  H.pool=shuffle(owners);H.idx=-1;S.total=H.pool.length;nextRound();
+}
+/* ---------- Imposter ---------- */
+function sendRole(id){
+  const I=H.imp;if(!I||S.mode!=="imp"||!S.round)return;
+  const m={t:"role",idx:S.round.idx,cat:I.cat,word:id===I.imp?null:I.word};
+  if(id===pid){myRole={idx:m.idx,cat:m.cat,word:m.word};showRole=true;return}
+  if(conns[id])try{conns[id].send(m)}catch(e){}
+}
+function nextImp(){
+  const on=S.players.filter(p=>p.online).map(p=>p.id);
+  H.ibag=(H.ibag||[]).filter(id=>on.includes(id));
+  if(!H.ibag.length)H.ibag=shuffle(on);
+  const imp=H.ibag.pop();
+  if(!H.icat||!H.icat.length)H.icat=shuffle(Object.keys(WORDS));
+  const cat=H.icat.pop();
+  H.iused=H.iused||[];
+  let free=WORDS[cat].filter(w=>!H.iused.includes(w));if(!free.length){H.iused=[];free=WORDS[cat]}
+  const word=pick(free);H.iused.push(word);
+  const order=shuffle(on);
+  H.imp={imp,cat,word,order};H.seen={};H.votes={};
+  S.round={idx:H.idx,type:"imp",cat:null,wcat:cat,order,turn:0,n:order.length*2};
+  S.phase="irole";S.answered=[];
+  on.forEach(sendRole);bc();
+}
+function checkIRole(){
+  if(S.phase!=="irole"||H.pending)return;
+  const req=required();
+  if(req.length&&req.every(id=>H.seen[id])){H.pending=true;const i=S.round.idx;setTimeout(()=>{H.pending=false;if(S.phase==="irole"&&S.round.idx===i)startHints()},700)}
+}
+function startHints(){S.phase="ihint";S.round.turn=0;S.answered=[];showRole=false;bc()}
+function hintNext(){
+  S.round.turn++;
+  if(S.round.turn>=S.round.n){S.phase="ivote";S.answered=[];H.votes={};H.pending=false}
+  bc();
+}
+function checkVotes(){
+  if(S.phase!=="ivote"||H.pending)return;
+  const req=required();
+  if(req.length&&req.every(id=>id in H.votes)){H.pending=true;const i=S.round.idx;setTimeout(()=>{H.pending=false;if(S.phase==="ivote"&&S.round.idx===i)resolveVote()},700)}
+}
+function voteCounts(){const c={};Object.values(H.votes).forEach(v=>{if(S.players.some(x=>x.id===v))c[v]=(c[v]||0)+1});return c}
+function resolveVote(){
+  const I=H.imp,c=voteCounts(),max=Math.max(0,...Object.values(c)),top=Object.keys(c).filter(k=>c[k]===max);
+  const caught=top.length===1&&top[0]===I.imp;
+  if(caught){
+    S.round.options=shuffle([I.word,...shuffle(WORDS[I.cat].filter(w=>w!==I.word)).slice(0,7)]);
+    S.phase="iguess";S.answered=[];return bc();
+  }
+  resolveImp(null);
+}
+function resolveImp(guess){
+  const I=H.imp,c=voteCounts(),max=Math.max(0,...Object.values(c)),top=Object.keys(c).filter(k=>c[k]===max);
+  const caught=top.length===1&&top[0]===I.imp,impWins=!caught||guess===I.word;
+  const others=S.players.filter(p=>p.online&&p.id!==I.imp).map(p=>p.id);
+  const drinkers=impWins?others:[I.imp];
+  addDrink(drinkers);bump(H.stats.impPlays,I.imp);if(impWins)bump(H.stats.impWins,I.imp);
+  S.reveal={type:"imp",imp:I.imp,word:I.word,cat:I.cat,counts:c,caught,guess,impWins,drinkers};
+  S.phase="reveal";bc();
 }
 /* Gossip Wheel: alle schreiben, dann werden die Karten nacheinander aufgedeckt */
 function startWrite(){
@@ -828,9 +953,9 @@ function cardAdvance(){
   if(H.ci>=H.cards.length){
     S.pass++;
     if(S.pass<S.passes)return startWrite();
-    S.phase="end";S.card=null;S.answered=[];return bc();
+    return finish();
   }
-  const c=H.cards[H.ci];
+  const c=H.cards[H.ci];H.stats.cardsPlayed++;bump(H.stats.cards,c.target);
   S.phase="card";
   S.card={i:H.ci,n:H.cards.length,pass:S.pass,target:c.target,kind:c.kind,text:c.text};
   S.answered=[];bc();
@@ -838,7 +963,13 @@ function cardAdvance(){
 /* Wer am ehesten */
 function nextRound(){
   H.idx++;H.answers={};H.pending=false;S.answered=[];S.reveal=null;
-  if(H.idx>=H.pool.length){S.phase="end";S.round=null;return bc()}
+  if(H.idx>=H.pool.length)return finish();
+  if(S.mode==="imp")return nextImp();
+  if(S.mode==="tl"){
+    const owner=H.pool[H.idx],T=H.tl[owner],order=shuffle([0,1,2]);
+    H.tlLie=order.indexOf(T.lie);H.answers={[owner]:"own"};S.answered=[owner];
+    S.round={idx:H.idx,type:"tl",cat:null,owner,stmts:order.map(i=>T.s[i])};S.phase="answer";return bc();
+  }
   if(S.mode==="tod"){
     const ok=id=>S.players.some(x=>x.id===id&&x.online);
     H.bag=(H.bag||[]).filter(ok);
@@ -851,15 +982,22 @@ function nextRound(){
 }
 function doReveal(){
   const ans=H.answers,counts={};
+  if(S.round.type==="tl"){
+    const owner=S.round.owner,lie=H.tlLie,guess=Object.keys(ans).filter(id=>id!==owner&&S.players.some(x=>x.id===id));
+    const cn=[0,0,0];guess.forEach(id=>{cn[ans[id]]++});
+    const right=guess.filter(id=>ans[id]===lie),wrong=guess.filter(id=>ans[id]!==lie);
+    const drinkers=right.length?wrong:[owner];addDrink(drinkers);if(!right.length)bump(H.stats.fooled,owner);
+    S.reveal={type:"tl",owner,lie,counts:cn,right,wrong,drinkers};S.phase="reveal";return bc();
+  }
   if(S.round.type==="never"){
     const yes=Object.keys(ans).filter(id=>ans[id]==="ja"&&S.players.some(x=>x.id===id));
     const no=Object.keys(ans).filter(id=>ans[id]==="nein"&&S.players.some(x=>x.id===id));
-    S.reveal={yes,no};S.phase="reveal";return bc();
+    addDrink(yes);S.reveal={yes,no};S.phase="reveal";return bc();
   }
   Object.values(ans).forEach(v=>{if(S.players.some(x=>x.id===v))counts[v]=(counts[v]||0)+1});
   const max=Math.max(0,...Object.values(counts));
   const winners=max?Object.keys(counts).filter(k=>counts[k]===max):[];
-  S.reveal={counts,winners};S.phase="reveal";bc();
+  addDrink(winners);S.reveal={counts,winners};S.phase="reveal";bc();
 }
 
 /* ---------- Client ---------- */
@@ -869,6 +1007,7 @@ function clientData(d,g,si){
   if(d.t==="hb")return;
   if(d.t==="chat"){chatIn(d.m);return}
   if(d.t==="chats"){(d.m||[]).forEach(m=>chatIn(m,true));return}
+  if(d.t==="role"){if(jg===g&&d&&typeof d.idx==="number"){myRole={idx:d.idx,cat:String(d.cat||"").slice(0,40),word:d.word==null?null:String(d.word).slice(0,40)};showRole=true;render(true)}return}
   if(d.t==="avs"){for(const k in d.m){const a=cleanAv(d.m[k]);if(a)AV[k]=a}render();return}
   if(d.t==="s"){g.got=true;if(si!=null)srvI=si;clearTimeout(g.timer);S=d.s;status="";lost=false;render()}
   else if(d.t==="err"){clearTimeout(g.timer);fail(d.m)}
@@ -1004,21 +1143,21 @@ function vLobby(){
   let bar;
   if(h){
     const nc=Object.keys(CATS).length;
-    h2+=acc("mode","Modus",`${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}`,
+    h2+=acc("mode","Modus",`${esc(MODES[S.mode])} · ${modeSum()}`,
       `${Object.entries(MODES).map(([k,n])=>`<button class="opt ${S.mode===k?"on":""}" data-a="mode" data-v="${k}"><span class="who"><span class="emo">${MODEI[k]}</span><span>${n}<br><small>${MODEX[k]}</small></span></span>${S.mode===k?'<span class="ck">✓</span>':""}</button>`).join("")}
       <p class="mut" style="font-size:14px">${MODEH[S.mode]}</p>
-      <h2 style="margin:6px 0 0">${S.mode==="gossip"?"Durchgänge":"Runden"}</h2><div class="seg">${(S.mode==="gossip"?[1,2,3]:[5,10,15,20,30]).map(n=>`<button class="${(S.mode==="gossip"?S.passes:S.rounds)===n?"on":""}" data-a="${S.mode==="gossip"?"passes":"rounds"}" data-v="${n}">${n}</button>`).join("")}</div>`);
-    h2+=acc("cats","Kategorien",`${S.cats.length} von ${nc} aktiv`,
+      ${S.mode==="tl"?"":`<h2 style="margin:6px 0 0">${S.mode==="gossip"?"Durchgänge":"Runden"}</h2><div class="seg">${(S.mode==="gossip"?[1,2,3]:[5,10,15,20,30]).map(n=>`<button class="${(S.mode==="gossip"?S.passes:S.rounds)===n?"on":""}" data-a="${S.mode==="gossip"?"passes":"rounds"}" data-v="${n}">${n}</button>`).join("")}</div>`}`);
+    if(CATMODES.has(S.mode))h2+=acc("cats","Kategorien",`${S.cats.length} von ${nc} aktiv`,
       `${Object.entries(CATS).map(([k,c])=>`<button class="opt ${S.cats.includes(k)?"on":""}" data-a="cat" data-v="${k}"><span class="who"><span class="emo">${c.e}</span><span>${esc(c.n)}<br><small>${esc(c.d)}</small></span></span>${S.cats.includes(k)?'<span class="ck">✓</span>':""}</button>`).join("")}
       <div class="row"><button class="btn sec" data-a="allcats">Alle</button><button class="btn sec" data-a="nocats">Keine</button></div>`);
     h2+=acc("ban","Gesperrte Wörter",H.banned.length?H.banned.length+" gesperrt":"Keine",
       `<div class="chips">${H.banned.map(w=>`<span class="chip">${esc(w)}<button data-a="unban" data-v="${esc(w)}" aria-label="Entfernen">✕</button></span>`).join("")||'<span class="mut" style="font-size:14px">Keine Wörter gesperrt.</span>'}</div>
       <div class="row" style="align-items:stretch"><input type="text" id="bw" maxlength="30" placeholder="Wort sperren" autocomplete="off"><button class="btn sec" data-a="ban" style="width:96px;flex:none;padding:8px">Sperren</button></div>
       <p class="mut" style="font-size:13px">Diese Wörter werden in allen Texten automatisch durch „...“ ersetzt (Groß- und Kleinschreibung egal). Nur du siehst die Liste.</p>`);
-    const why=need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}`:!S.cats.length?"Wähle mindestens eine Kategorie":"";
-    bar=dock(`${why?`<p>${why}</p>`:""}<button class="btn" data-a="start" ${on<3||!S.cats.length?"disabled":""}>Spiel starten</button>`);
+    const why=need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}`:(!S.cats.length&&CATMODES.has(S.mode))?"Wähle mindestens eine Kategorie":"";
+    bar=dock(`${why?`<p>${why}</p>`:""}<button class="btn" data-a="start" ${on<3||(!S.cats.length&&CATMODES.has(S.mode))?"disabled":""}>Spiel starten</button>`);
   } else {
-    h2+=`<div class="card"><h2>Einstellungen</h2><p>${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}</p><p class="mut" style="font-size:14px;margin-top:4px">${S.cats.map(k=>esc(CATS[k].n)).join(", ")||"Keine Kategorie"}</p></div>`;
+    h2+=`<div class="card"><h2>Einstellungen</h2><p>${esc(MODES[S.mode])} · ${modeSum()}</p><p class="mut" style="font-size:14px;margin-top:4px">${CATMODES.has(S.mode)?S.cats.map(k=>esc(CATS[k].n)).join(", ")||"Keine Kategorie":""}</p></div>`;
     bar=dock(`<p>${need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}. `:""}Warte, bis ${esc(pname(S.hostPid))} das Spiel startet …</p>`);
   }
   return h2+bar;
@@ -1032,6 +1171,7 @@ function rhead(){
 const KINDS=[{k:"challenge",n:"Challenge",f:"Aufgabe für",e:"🎯",c:"#6B6B73"},{k:"question",n:"Frage",f:"Frage an",e:"💬",c:"#6B6B73"},{k:"gossip",n:"Gerücht",f:"Gerücht über",e:"🤫",c:"#6B6B73"}];
 const KCARD={challenge:{l:"Challenge für",r:"Machen oder trinken."},question:{l:"Frage an",r:"Ehrlich antworten oder trinken."},gossip:{l:"Gerücht über",r:"Stimmt es? Ehrlich sagen oder trinken."}};
 let draft={key:""};
+let myRole=null, showRole=true, tlDraft={key:"",s:["","",""],lie:-1}, tlSent=false;
 function newDraft(key){return {key,stage:0,target:null,text:"",sent:[]}}
 function wstText(){
   const req=required(),got=S.answered.filter(id=>req.includes(id)).length;
@@ -1068,7 +1208,87 @@ function vCard(){
   <div class="grow"></div>
   ${dock(isHost()?`<button class="btn" data-a="gnext">${last?(S.pass+1<S.passes?"Nächster Durchgang":"Fertig"):"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
 }
+function vTlCollect(){
+  const key=S.code+S.gen;if(tlDraft.key!==key){tlDraft={key,s:["","",""],lie:-1};tlSent=false}
+  const w=wstText();
+  const foot=`<p class="c mut" id="wst" style="font-size:14px">${w.txt}</p>${isHost()?`<button class="btn sec" id="gob" data-a="tgo" ${S.nsub?"":"disabled"}>Los geht's</button>`:""}`;
+  const tag=`<div class="tag">Zwei Wahrheiten, eine Lüge</div>`;
+  if(tlSent)return `${header()}${tag}<div class="grow stack" style="justify-content:center"><div class="card c"><p style="font-size:20px;font-weight:700">Abgegeben</p><p class="mut" style="font-size:14px">Warte auf die anderen.</p></div></div>${foot}`;
+  const ok=tlDraft.s.every(x=>x.trim())&&tlDraft.lie>=0;
+  return `${header()}${tag}
+  <div class="card stack"><h2>Drei Aussagen über dich</h2><p class="mut" style="font-size:14px">Zwei stimmen, eine ist gelogen. Markiere die Lüge.</p>
+  ${[0,1,2].map(i=>`<div class="stack" style="gap:6px"><textarea id="tl${i}" data-i="${i}" maxlength="100" placeholder="Aussage ${i+1} …" style="min-height:58px">${esc(tlDraft.s[i])}</textarea><button class="opt ${tlDraft.lie===i?"on":""}" data-a="tlie" data-v="${i}" style="padding:8px 12px">${tlDraft.lie===i?"Das ist die Lüge ✓":"Das ist die Lüge"}</button></div>`).join("")}
+  <button class="btn" id="tsb" data-a="tsend" ${ok?"":"disabled"}>Abgeben</button></div>${foot}`;
+}
+function vTlAnswer(){
+  const r=S.round,need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
+  const own=r.owner===pid,done=S.answered.includes(pid),who=esc(pname(r.owner));
+  const body=own
+    ?`<div class="card stack"><h2>Deine Aussagen</h2>${r.stmts.map(s=>`<p>${esc(s)}</p>`).join("")}<p class="mut" style="font-size:14px">Die anderen raten gerade, welche gelogen ist. Bleib ernst.</p></div>`
+    :`<p class="c" style="font-weight:700">Welche Aussage von ${who} ist gelogen?</p><div class="stack">${r.stmts.map((s,i)=>`<button class="opt ${String(mine)===String(i)?"on":""}" data-a="ans" data-v="${i}" style="justify-content:flex-start;text-align:left"><span>${esc(s)}</span></button>`).join("")}</div>`;
+  return `${rhead()}<div class="grow stack" style="justify-content:center">${face(r.owner,pname(r.owner),"f64")}${body}
+  <p class="c mut" style="font-size:14px">${done&&!own?"Tipp gespeichert (du kannst ihn noch ändern). ":""}${got} / ${need} haben getippt</p></div>
+  ${isHost()?`<button class="btn sec" data-a="reveal" ${got?"":"disabled"}>Jetzt auflösen</button>`:""}`;
+}
+function vTlReveal(nextBtn){
+  const r=S.round,v=S.reveal,max=Math.max(0,...v.counts);
+  return `${rhead()}<div class="stack">
+  <div class="card c"><p class="mut" style="font-size:13px;font-weight:700">Aussagen von</p>${face(v.owner,pname(v.owner),"f64")}<p class="who2" style="font-size:28px;font-weight:800;margin-top:6px">${esc(pname(v.owner))}</p></div>
+  <div class="card stack">${r.stmts.map((s,i)=>`<div class="bar ${i===v.lie?"top":""}"><div class="l"><span style="font-weight:${i===v.lie?800:500}">${i===v.lie?"🤥 Lüge: ":"✓ "}${esc(s)}</span><span>${v.counts[i]}</span></div><div class="b"><i data-w="${max?v.counts[i]/max*100:0}"></i></div></div>`).join("")}</div>
+  <div class="card c"><span class="drink">🍻</span><p class="mut" style="font-size:13px;font-weight:700">Trinkt</p>${v.drinkers.length?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0">${v.drinkers.map(id=>face(id,pname(id),"f64")).join("")}</div><p style="font-size:24px;font-weight:800">${v.drinkers.map(id=>esc(pname(id))).join(" & ")}</p><p class="mut" style="font-size:14px;margin-top:4px">${v.right.length?"Wer falsch lag, trinkt.":"Niemand hat die Lüge erkannt, der Erzähler trinkt."}</p>`:`<p style="font-size:22px;font-weight:700">Niemand</p>`}</div></div>
+  ${nextBtn}`;
+}
+const myRoleNow=()=>myRole&&S.round&&myRole.idx===S.round.idx?myRole:null;
+function roleCard(me,small){
+  if(!me)return `<p class="c mut">Rolle wird geladen …</p>`;
+  if(me.word)return `<div class="stage"><span class="kind">🕵️ Geheimes Wort</span><p class="for">Kategorie: ${esc(me.cat)}</p><p class="who2">${esc(me.word)}</p>${small?"":`<p class="rule">Gib später einen Hinweis, der nicht zu offensichtlich ist.</p>`}</div>`;
+  return `<div class="stage"><span class="kind">🥸 Du bist der Imposter</span><p class="for">Kategorie</p><p class="who2">${esc(me.cat)}</p>${small?"":`<p class="rule">Du kennst das Wort nicht. Bluffe dich durch.</p>`}</div>`;
+}
+function vIRole(){
+  const me=myRoleNow(),done=S.answered.includes(pid),need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
+  return `${rhead()}${roleCard(me,false)}<p class="c mut" style="font-size:14px">Zeig niemandem deinen Bildschirm. ${got} / ${need} bereit</p><div class="grow"></div>
+  ${dock(!done?`<button class="btn" data-a="isee" ${me?"":"disabled"}>Verstanden</button>`:isHost()?`<button class="btn" data-a="igo">Alle bereit, los geht's</button>`:`<p>Warte auf die anderen …</p>`)}`;
+}
+function vIHint(){
+  const r=S.round,n=r.order.length,cur=r.order[r.turn%n],me=myRoleNow(),pass=Math.floor(r.turn/n)+1;
+  return `${rhead()}<div class="card c"><p class="mut" style="font-size:13px;font-weight:700">Hinweis-Runde ${pass} von 2 · Kategorie ${esc(me?me.cat:"")}</p>${face(cur,pname(cur),"f64")}<p class="who2" style="font-size:30px;font-weight:800;margin-top:6px">${cur===pid?"Du bist dran":esc(pname(cur))}</p><p class="mut" style="font-size:14px">Sagt laut einen Hinweis zum Wort. Der Imposter bluft.</p></div>
+  <div class="card">${r.order.map((id,i)=>`<div class="pl"><span class="who">${face(id,pname(id),"f28")}${esc(pname(id))}</span><b>${i===r.turn%n?"dran":""}</b></div>`).join("")}</div>
+  <button class="btn sec" data-a="rolesw">${showRole?"Rolle verbergen":"Meine Rolle zeigen"}</button>${showRole?roleCard(me,true):""}
+  <div class="grow"></div>
+  ${dock(isHost()?`<button class="btn" data-a="inext">${r.turn+1>=r.n?"Zur Abstimmung":"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
+}
+function vIVote(){
+  const r=S.round,need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
+  return `${rhead()}<div class="grow stack" style="justify-content:center"><p class="c" style="font-weight:700;font-size:20px">Wer ist der Imposter?</p>
+  <div class="grid">${S.players.filter(p=>p.id!==pid).map(p=>`<button class="opt big ${mine===p.id?"on":""} ${p.online?"":"mut"}" data-a="ivote" data-v="${esc(p.id)}">${esc(p.name)}</button>`).join("")}</div>
+  <p class="c mut" style="font-size:14px">${S.answered.includes(pid)?"Stimme gespeichert (du kannst sie noch ändern). ":""}${got} / ${need} haben gewählt</p></div>`;
+}
+function vIGuess(){
+  const r=S.round,me=myRoleNow(),isImp=!!(me&&me.word===null);
+  return `${rhead()}<div class="grow stack" style="justify-content:center">${isImp
+    ?`<p class="c" style="font-weight:700;font-size:20px">Erwischt! Welches Wort war es?</p><p class="c mut" style="font-size:14px">Rate richtig, dann gewinnst du trotzdem.</p><div class="grid">${r.options.map((w,i)=>`<button class="opt big" data-a="iguess" data-v="${i}">${esc(w)}</button>`).join("")}</div>`
+    :`<div class="card c"><p style="font-size:20px;font-weight:700">Der Imposter wurde erwischt</p><p class="mut" style="font-size:14px">Jetzt versucht er, das Wort zu erraten …</p></div>`}</div>`;
+}
+function vImpReveal(nextBtn){
+  const v=S.reveal;
+  const rows=S.players.map(p=>[p,v.counts[p.id]||0]).sort((a,b)=>b[1]-a[1]),max=rows[0]?rows[0][1]:0;
+  const msg=v.caught?(v.impWins?"Erwischt, aber er hat das Wort erraten.":"Erwischt und falsch geraten.")+(v.guess?` (Tipp: ${esc(v.guess)})`:""):"Nicht erwischt.";
+  return `${rhead()}<div class="stack">
+  <div class="card c"><p class="mut" style="font-size:13px;font-weight:700">Der Imposter war</p>${face(v.imp,pname(v.imp),"f88")}<p class="who2" style="font-size:34px;font-weight:800;margin-top:6px">${esc(pname(v.imp))}</p>
+    <p class="mut" style="font-size:14px;margin-top:6px">Das Wort war <b style="color:var(--text)">${esc(v.word)}</b> (${esc(v.cat)}). ${msg}</p></div>
+  <div class="card c"><span class="drink">🍻</span><p class="mut" style="font-size:13px;font-weight:700">Trinkt</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0">${v.drinkers.map(id=>face(id,pname(id),"f64")).join("")}</div><p style="font-size:24px;font-weight:800">${v.drinkers.map(id=>esc(pname(id))).join(" & ")}</p><p class="mut" style="font-size:14px;margin-top:4px">${v.impWins?"Der Imposter hat gewonnen, alle anderen trinken.":"Der Imposter hat verloren und trinkt."}</p></div>
+  <div class="card">${rows.map(([p,c])=>`<div class="bar ${c===max&&c>0?"top":""}"><div class="l"><span class="who">${face(p.id,p.name,"f28")}${esc(p.name)}</span><span>${c}</span></div><div class="b"><i data-w="${max?c/max*100:0}"></i></div></div>`).join("")}</div></div>
+  ${nextBtn}`;
+}
+function reportCard(){
+  const R=S.report;if(!R)return "";
+  const max=R.drinks?Math.max(1,...R.drinks.map(d=>d.c)):1;
+  return `<div class="card stack"><h2>Rückblick</h2><p class="mut" style="font-size:14px">${esc(MODES[R.mode]||"")} · ${R.rounds} ${R.mode==="gossip"?"Karten":"Runden"} · ${S.players.length} Spieler</p>
+  ${R.drinks?`<div>${R.drinks.map(d=>`<div class="bar ${d.c===max&&d.c>0?"top":""}"><div class="l"><span class="who">${face(d.id,d.n,"f28")}${esc(d.n)}</span><span>${d.c}×</span></div><div class="b"><i data-w="${d.c/max*100}"></i></div></div>`).join("")}</div>`:`<p class="mut" style="font-size:14px">${esc(R.note)}</p>`}
+  ${R.facts.map(f=>`<p>${esc(f)}</p>`).join("")}</div>`;
+}
 function vAnswer(){
+  if(S.round.type==="tl")return vTlAnswer();
   const r=S.round,need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
   const done=S.answered.includes(pid);
   const body=r.type==="never"
@@ -1082,6 +1302,8 @@ function vReveal(){
   const r=S.round,v=S.reveal;
   const last=r.idx+1>=S.total;
   const nextBtn=dock(isHost()?`<button class="btn" data-a="next">${last?"Fertig":"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`);
+  if(r.type==="tl")return vTlReveal(nextBtn);
+  if(r.type==="imp")return vImpReveal(nextBtn);
   if(r.type==="never"){
     const n=v.yes.length,tot=v.yes.length+v.no.length;
     const rows=S.players.filter(p=>v.yes.includes(p.id)||v.no.includes(p.id)).sort((a,b)=>v.yes.includes(b.id)-v.yes.includes(a.id));
@@ -1113,6 +1335,7 @@ function vTcard(){
 function vEnd(){
   const cf=Array.from({length:30},(_,i)=>`<i class="cf" style="left:${(i*37+11)%100}%;background:${PAL[i%PAL.length]};animation-duration:${(3+(i%5)*.6).toFixed(1)}s;animation-delay:-${((i*13)%20/10).toFixed(1)}s"></i>`).join("");
   return `<div class="confetti">${cf}</div>${header()}<span class="drink c" style="margin-top:18px">🥂</span><h1 class="c" style="margin-top:8px">Prost!</h1><p class="mut c">Das war die Runde. Nochmal oder was anderes?</p>
+  ${reportCard()}
   <div class="grow"></div>
   ${dock(isHost()?`<button class="btn" data-a="again">Zurück zur Lobby</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
 }
@@ -1135,7 +1358,7 @@ function notices(){
 }
 function render(force){
   chatSync();
-  if(!force&&S&&S.phase==="write"&&render.w===S.code+S.gen&&document.getElementById("wst")){
+  if(!force&&S&&(S.phase==="write"||S.phase==="tcollect")&&render.w===S.code+S.gen&&document.getElementById("wst")){
     const w=wstText();document.getElementById("wst").textContent=w.txt;
     const g=document.getElementById("gob");if(g)g.disabled=!S.nsub;
     return;
@@ -1146,6 +1369,11 @@ function render(force){
   else {
     if(S.phase==="lobby")html=vLobby();
     else if(S.phase==="write")html=vWrite();
+    else if(S.phase==="tcollect")html=vTlCollect();
+    else if(S.phase==="irole")html=vIRole();
+    else if(S.phase==="ihint")html=vIHint();
+    else if(S.phase==="ivote")html=vIVote();
+    else if(S.phase==="iguess")html=vIGuess();
     else if(S.phase==="card")html=vCard();
     else if(S.phase==="answer")html=vAnswer();
     else if(S.phase==="choose")html=vChoose();
@@ -1160,7 +1388,7 @@ function render(force){
   render.sk=S?key:undefined;
   render.k=key;
   notices();
-  render.w=S&&S.phase==="write"?S.code+S.gen:"";
+  render.w=S&&(S.phase==="write"||S.phase==="tcollect")?S.code+S.gen:"";
   if(html===render.h)return;
   render.h=html;
   const fresh=render.ak!==role+"|"+key,first=render.ak===undefined;
@@ -1289,6 +1517,13 @@ const A = {
   unban(d){send({t:"ban",op:"del",w:d.v})},
   start(){send({t:"start"})},
   acc(d){openSec[d.v]=!openSec[d.v];render(true)},
+  tlie(d){tlDraft.lie=+d.v;render(true)},
+  tsend(){const ok=tlDraft.s.every(x=>x.trim())&&tlDraft.lie>=0;if(!ok)return;send({t:"tsub",s:tlDraft.s,lie:tlDraft.lie});tlSent=true;render(true)},
+  tgo(){send({t:"tgo"})},
+  isee(){send({t:"isee"})},igo(){send({t:"igo"})},inext(){send({t:"inext"})},
+  ivote(d){mine=d.v;send({t:"ivote",v:d.v});if(role==="client")render()},
+  iguess(d){send({t:"iguess",v:d.v})},
+  rolesw(){showRole=!showRole;render(true)},
   pick(d){draft.target=d.v;render(true);const f=document.getElementById("wform");if(f){f.scrollIntoView({block:"center",behavior:"smooth"});const x=document.getElementById("ft");if(x)x.focus({preventScroll:true})}},
   fill(){
     const K=KINDS[draft.stage],nm=draft.target?pname(draft.target):"";
@@ -1322,6 +1557,7 @@ $app.addEventListener("change",async e=>{
   render(true);
 });
 $app.addEventListener("input",e=>{
+  if(/^tl\d$/.test(e.target.id)){tlDraft.s[+e.target.dataset.i]=e.target.value;const b=document.getElementById("tsb");if(b)b.disabled=!(tlDraft.s.every(x=>x.trim())&&tlDraft.lie>=0);return}
   if(e.target.id!=="ft")return;
   draft.text=e.target.value;
   const b=document.getElementById("sb");if(b)b.disabled=!draft.text.trim();
