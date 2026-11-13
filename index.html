@@ -189,6 +189,8 @@ body.hasdock #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
 .stage .who2{font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
 .stage hr{width:100%;border:0;border-top:1px solid var(--line);margin:14px 0 10px}
 .stage .txt{font-size:24px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.vidwrap{display:flex;justify-content:center}
+.vid{height:min(44vh,420px);aspect-ratio:9/16;max-width:100%;border:0;border-radius:14px;background:#000}
 .stage .rule{color:var(--mut);font-size:14px;margin-top:10px}
 /* Meldung */
 #toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100vw - 32px)}
@@ -229,14 +231,15 @@ const CATS = {
     "Wer hat am ehesten schon mal geklaut?","Wer hat am ehesten schon mal bei einer Prüfung betrogen?","Wer lügt am häufigsten ohne Grund?","Wer hat am ehesten schon mal jemandem das Herz gebrochen?","Wer würde am ehesten ein Geheimnis für Geld verraten?","Wer hat am ehesten schon mal einen Freund hintergangen?","Wer würde am ehesten einen Unfall verursachen und abhauen?","Wer hat am ehesten schon mal Social Media eines Ex gehackt?","Wer hat am ehesten schon mal was in einem Laden mitgehen lassen?","Wer würde am ehesten ein Erbe zurückhalten?","Wer hat am ehesten schon mal ein Date geghostet?","Wer ist am ehesten ein Gossip-Spion?","Wer würde am ehesten bei einem Streit lügen, um zu gewinnen?","Wer hat das größte schlechte Gewissen in diesem Raum?","Wer hat am ehesten schon mal etwas Wichtiges versprochen und nicht gehalten?","Wer würde am ehesten ein Geheimnis für Geld verkaufen?","Wer hat am ehesten schon mal ein Gerücht in die Welt gesetzt?","Wer würde am ehesten bei einem Unfall wegsehen?","Wer hat am ehesten schon mal bei einer Rechnung getrickst?","Wer lügt am ehesten bei einer Entschuldigung?","Wer hat am ehesten schon mal jemandem den Job ausgespannt?","Wer würde am ehesten ein Erbe fälschen?","Wer hat am ehesten schon mal Schadenfreude gespürt, als es einem Freund schlecht ging?","Wer hat am ehesten schon mal einen Freund hinter dessen Rücken schlechtgemacht?","Wer würde am ehesten eine Straftat vertuschen?","Wer hat am ehesten schon mal eine Nachricht heimlich gelesen?","Wer würde am ehesten eine Schuld auf andere abwälzen?","Wer hat am ehesten schon mal etwas aus einem Laden mitgehen lassen?","Wer würde am ehesten jemanden bei der Polizei anzeigen?","Wer hat am ehesten schon mal einen Lebenslauf geschönt?","Wer würde am ehesten ein Geheimnis mit ins Grab nehmen?","Wer hat am ehesten schon mal mit Absicht jemanden eifersüchtig gemacht?","Wer ist am ehesten der Typ, der Rache plant?","Wer hat am ehesten schon mal beim Spielen betrogen?"]}
 };
 
-const MODES = {gossip:"Gossip Wheel", likely:"Wer am ehesten", never:"Ich hab noch nie", tod:"Wahrheit oder Pflicht"};
-const MODEI = {gossip:"🎡", likely:"🗳️", never:"🙋", tod:"🎭"};
-const MODEX = {gossip:"Challenge, Frage und Gerücht schreiben", likely:"Wer passt am ehesten?", never:"Wer es schon gemacht hat, trinkt", tod:"Reihum: Wahrheit oder Pflicht"};
+const MODES = {gossip:"Gossip Wheel", likely:"Wer am ehesten", never:"Ich hab noch nie", tod:"Wahrheit oder Pflicht", wholiked:"Who Liked"};
+const MODEI = {gossip:"🎡", likely:"🗳️", never:"🙋", tod:"🎭", wholiked:"❤️"};
+const MODEX = {gossip:"Challenge, Frage und Gerücht schreiben", likely:"Wer passt am ehesten?", never:"Wer es schon gemacht hat, trinkt", tod:"Reihum: Wahrheit oder Pflicht", wholiked:"Videos erraten: Wer hat es geliked?"};
 const MODEH = {
   gossip:"Alle schreiben gleichzeitig: erst eine Person wählen und ihr eine Challenge geben, dann eine Frage, dann ein Gerücht. Danach wird Karte für Karte aufgedeckt (ohne Absender), der Host drückt Weiter. Wer nicht ehrlich antwortet oder die Challenge nicht macht, trinkt.",
   likely:"Alle wählen geheim, wer am ehesten zur Frage passt. Wer am häufigsten gewählt wird, trinkt.",
   never:"Ein Satz beginnt mit „Ich hab noch nie …“. Alle tippen geheim, ob sie es schon gemacht haben. Wer „Hab ich“ tippt, trinkt.",
-  tod:"Reihum ist jemand dran und wählt Wahrheit oder Pflicht. Ehrlich antworten oder die Challenge machen, sonst trinkt die Person."
+  tod:"Reihum ist jemand dran und wählt Wahrheit oder Pflicht. Ehrlich antworten oder die Challenge machen, sonst trinkt die Person.",
+  wholiked:"Jeder gibt vorher bis zu 5 Videos ab, die er geliked hat (Links einfügen oder den Daten-Export von TikTok/Instagram importieren). Dann wird ein Video nach dem anderen gezeigt, alle raten, wer es geliked hat. Wer falsch liegt, trinkt. Rät niemand richtig, trinkt die Person selbst."
 };
 /* "Ich hab noch nie ..." (je Kategorie) */
 const NIE = {
@@ -374,7 +377,7 @@ function cleanup(){
   try{relay&&relay.close()}catch(e){}relay=null;
   if(jg){try{jg.stop()}catch(e){}jg=null}
   try{wake&&wake.release()}catch(e){}wake=null;
-  AV={};chat=[];unread=0;chatOpen=false;peer=null;conn=null;conns={};S=null;H=null;role=null;lost=false;mine=null;status="";ss.del("ex_room");
+  vstage=[];vtext="";vsent=false;ownIdx=-1;AV={};chat=[];unread=0;chatOpen=false;peer=null;conn=null;conns={};S=null;H=null;role=null;lost=false;mine=null;status="";ss.del("ex_room");
   try{localStorage.removeItem("ex_host")}catch(e){}
 }
 /* Display wach halten, solange man im Raum ist (verhindert Sperrbildschirm) */
@@ -383,7 +386,7 @@ async function getWake(){
 }
 function fail(m){cleanup();err=m;render()}
 /* Verbindungstest: findet heraus, ob Webzugang, WebSocket und WebRTC zum Vermittlungsserver klappen */
-const BUILD="2026-11-13.1";
+const BUILD="2026-11-20.1";
 const timeoutP=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),ms));
 async function runDiag(){
   diag={lines:[],done:false,sum:""};
@@ -602,6 +605,100 @@ function rejoinSoon(ms){
   retryT=setTimeout(()=>{if(role==="client"&&room)joinRoom(room.code,room.name,true)},ms);
 }
 
+/* ---------- Who Liked: Links erkennen, einbetten, Daten-Export einlesen ---------- */
+const LINKRX=[
+  [/https?:\/\/(?:www\.|m\.)?tiktok\.com\/@[\w.\-]*\/video\/(\d{8,25})/gi,"tiktok",m=>m[1]],
+  [/https?:\/\/(?:www\.)?tiktokv?\.com\/share\/video\/(\d{8,25})/gi,"tiktok",m=>m[1]],
+  [/https?:\/\/(?:vm|vt)\.tiktok\.com\/([\w\-]{4,20})/gi,"tiktokshort",m=>m[1]],
+  [/https?:\/\/(?:www\.)?instagram\.com\/(reel|reels|p|tv)\/([\w\-]{5,20})/gi,"instagram",m=>(m[1]==="reels"?"reel":m[1])+"/"+m[2]],
+  [/https?:\/\/(?:www\.|m\.)?youtube\.com\/shorts\/([\w\-]{6,15})/gi,"youtube",m=>m[1]],
+  [/https?:\/\/(?:www\.|m\.)?youtube\.com\/watch\?[^\s"']*?v=([\w\-]{6,15})/gi,"youtube",m=>m[1]],
+  [/https?:\/\/youtu\.be\/([\w\-]{6,15})/gi,"youtube",m=>m[1]]
+];
+function canon(k,id){
+  if(k==="tiktok")return "https://www.tiktokv.com/share/video/"+id+"/";
+  if(k==="tiktokshort")return "https://vm.tiktok.com/"+id+"/";
+  if(k==="instagram")return "https://www.instagram.com/"+id+"/";
+  return "https://www.youtube.com/shorts/"+id;
+}
+/* Gibt eindeutige, bereinigte Links aus beliebigem Text zurück */
+function parseLinks(text,max){
+  const out=[],seen=new Set();
+  const s=String(text||"").slice(0,4000000);
+  for(const [rx,k,idf] of LINKRX){
+    rx.lastIndex=0;let m;
+    while((m=rx.exec(s))){
+      const id=idf(m),u=canon(k,id);
+      if(seen.has(u))continue;seen.add(u);out.push({u,k});
+      if(out.length>=(max||5000))return out;
+    }
+  }
+  return out;
+}
+function embedFor(v){
+  const m=/^https:\/\/www\.tiktokv\.com\/share\/video\/(\d+)\/$/.exec(v.u);
+  if(v.k==="tiktok"&&m)return "https://www.tiktok.com/embed/v2/"+m[1];
+  const i=/^https:\/\/www\.instagram\.com\/(reel|p|tv)\/([\w\-]+)\/$/.exec(v.u);
+  if(v.k==="instagram"&&i)return "https://www.instagram.com/"+i[1]+"/"+i[2]+"/embed";
+  const y=/^https:\/\/www\.youtube\.com\/shorts\/([\w\-]+)$/.exec(v.u);
+  if(v.k==="youtube"&&y)return "https://www.youtube-nocookie.com/embed/"+y[1]+"?playsinline=1&rel=0";
+  return "";
+}
+const EMBED_OK=/^https:\/\/(www\.tiktok\.com\/embed\/v2\/\d+|www\.instagram\.com\/(reel|p|tv)\/[\w\-]+\/embed|www\.youtube-nocookie\.com\/embed\/[\w\-]+)/;
+const OPEN_OK=/^https:\/\/(www\.tiktokv\.com\/share\/video\/\d+\/|vm\.tiktok\.com\/[\w\-]+\/|www\.instagram\.com\/(reel|p|tv)\/[\w\-]+\/|www\.youtube\.com\/shorts\/[\w\-]+)$/;
+/* ZIP lesen (nur Text-Dateien), ohne Bibliothek */
+async function unzipTexts(buf){
+  const dv=new DataView(buf),u=new Uint8Array(buf);
+  let e=-1;for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-66000);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error("zip");
+  const n=dv.getUint16(e+10,true);let off=dv.getUint32(e+16,true);const out=[];
+  for(let k=0;k<n&&k<8000;k++){
+    if(dv.getUint32(off,true)!==0x02014b50)break;
+    const meth=dv.getUint16(off+10,true),csz=dv.getUint32(off+20,true),usz=dv.getUint32(off+24,true),nl=dv.getUint16(off+28,true),el=dv.getUint16(off+30,true),cl=dv.getUint16(off+32,true),lo=dv.getUint32(off+42,true);
+    const name=td.decode(u.subarray(off+46,off+46+nl));off+=46+nl+el+cl;
+    if(!/\.(json|txt|html?|csv)$/i.test(name)||usz>120e6)continue;
+    const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true),data=u.subarray(ds,ds+csz);
+    let text;
+    if(meth===0)text=td.decode(data);
+    else if(meth===8){text=await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text()}
+    else continue;
+    out.push({name,text});
+  }
+  return out;
+}
+/* Nur Links aus "Likes"-Bereichen nehmen, nie aus Verlauf, Suche oder Kommentaren */
+function likesFromText(name,text){
+  const likeName=/like|liked|favorit|gef[aä]llt/i.test(name);
+  let res=[];
+  try{
+    const j=JSON.parse(text);
+    const walk=(o,inL)=>{
+      if(typeof o==="string"){if(inL)res.push(...parseLinks(o));return}
+      if(!o||typeof o!=="object")return;
+      for(const key of Object.keys(o))walk(o[key],inL||/like|favorit|favourite|gef[aä]llt/i.test(key));
+    };
+    walk(j,likeName);
+    return res;
+  }catch(e){}
+  if(likeName)return parseLinks(text);
+  const a=text.search(/Like List|Favorite Videos|Likes and Favorites|Gef[aä]llt mir/i);
+  if(a<0)return [];
+  const rest=text.slice(a),b=rest.slice(20).search(/\n(?:Video Browsing History|Watch History|Comments?|Search|Direct Message|Post|Share History|Profile)\b/i);
+  return parseLinks(b<0?rest:rest.slice(0,b+20));
+}
+async function importLikes(file){
+  const buf=await file.arrayBuffer();
+  const head=new Uint8Array(buf.slice(0,2));
+  let found=[];
+  if(head[0]===0x50&&head[1]===0x4B){
+    for(const f of await unzipTexts(buf))found.push(...likesFromText(f.name,f.text));
+  } else found=likesFromText(file.name,td.decode(buf));
+  const seen=new Set(),uniq=[];
+  for(const v of found)if(!seen.has(v.u)){seen.add(v.u);uniq.push(v)}
+  return shuffle(uniq).slice(0,300);
+}
+let vstage=[], vtext="", vsent=false, ownIdx=-1, likeMsg="";
+const savedLikes=()=>{try{const a=JSON.parse(ls.get("ex_likes")||"[]");return Array.isArray(a)?a.filter(v=>v&&OPEN_OK.test(v.u)):[]}catch(e){return []}};
 /* ---------- Host (hält den Spielstand) ---------- */
 function hostRoom(name,restore){
   role="host";status=restore?"Raum wird wiederhergestellt …":"Raum wird erstellt …";err="";render();
@@ -704,6 +801,7 @@ function join(c,d){
   pl.online=true;c._pid=id;conns[id]=c;
   try{c.send({t:"avs",m:H.av})}catch(e){}
   try{c.send({t:"chats",m:H.chat.slice(-30)})}catch(e){}
+  if(S.mode==="wholiked"&&S.phase==="answer"&&H.vowner===id)try{c.send({t:"own",idx:S.round.idx})}catch(e){}
   if(av)for(const o in conns)if(o!==id)try{conns[o].send({t:"avs",m:{[id]:av}})}catch(e){}
   bc();
 }
@@ -744,6 +842,7 @@ function act(p,d){
       if(host&&S.phase==="lobby")startGame();break;
     case "ans":
       if(S.phase!=="answer")return;
+      if(S.round.type==="liked"&&H.vowner===p)return;
       if(S.round.type==="never"){if(d.v!=="ja"&&d.v!=="nein")return}
       else if(!S.players.some(x=>x.id===d.v)||d.v===p)return;
       H.answers[p]=d.v;S.answered=Object.keys(H.answers);checkAll();bc();break;
@@ -770,6 +869,20 @@ function act(p,d){
       checkSubs();bc();break}
     case "go":
       if(host&&S.phase==="write")startCards();break;
+    case "vsub":{
+      if(S.phase!=="vcollect"||H.vdone[p])return;
+      const list=(Array.isArray(d.links)?d.links:[]).slice(0,5).map(x=>({u:String(x&&x.u||"").slice(0,200),k:String(x&&x.k||"")})).filter(v=>OPEN_OK.test(v.u)&&["tiktok","tiktokshort","instagram","youtube"].includes(v.k));
+      if(!list.length)return;
+      H.vdone[p]=true;
+      list.forEach(v=>{
+        if(H.vids.some(x=>x.u===v.u))return;
+        /* an zufaelliger Stelle ablegen, der Besitzer steht nur im Host-Speicher */
+        H.vids.splice(Math.floor(Math.random()*(H.vids.length+1)),0,{u:v.u,k:v.k,owner:p});
+      });
+      S.nsub=H.vids.length;S.answered=Object.keys(H.vdone);
+      checkVids();bc();break}
+    case "vgo":
+      if(host&&S.phase==="vcollect")startVideos();break;
     case "chat":{
       const now=Date.now();
       if(now-(H.rate[p]||0)<900)return;
@@ -788,14 +901,15 @@ function act(p,d){
       else{const pl=S.players.find(x=>x.id===p);if(pl){pl.online=false;pl.off=Date.now()}}
       delete conns[p];checkAll();checkSubs();bc();break}
     case "again":
-      if(host&&S.phase==="end"){clearTimeout(H.timer);S.phase="lobby";S.round=null;S.card=null;S.reveal=null;S.answered=[];S.players=S.players.filter(x=>x.online);bc()}break;
+      if(host&&S.phase==="end"){clearTimeout(H.timer);S.phase="lobby";S.round=null;S.card=null;S.reveal=null;S.answered=[];H.vids=[];H.vdone={};H.vowner=null;S.players=S.players.filter(x=>x.online);bc()}break;
   }
 }
 function startGame(){
   const on=S.players.filter(p=>p.online);
-  if(on.length<3||!S.cats.length)return;
+  if(on.length<3||(!S.cats.length&&S.mode!=="wholiked"))return;
   S.players=on;
   if(S.mode==="gossip"){S.pass=0;return startWrite()}
+  if(S.mode==="wholiked")return startCollect();
   H.bag=[];
   if(S.mode==="tod"){H.pool=Array(S.rounds).fill(0);H.idx=-1;S.total=S.rounds;return nextRound()}
   const pool=[];
@@ -804,6 +918,24 @@ function startGame(){
     else CATS[k].q.forEach(q=>pool.push({cat:k,text:q}));
   });
   H.pool=shuffle(pool).slice(0,S.rounds);H.idx=-1;S.total=H.pool.length;
+  nextRound();
+}
+/* Who Liked: erst Links sammeln, dann Video für Video raten */
+function startCollect(){
+  S.gen++;H.vids=[];H.vdone={};H.pending=false;S.answered=[];S.nsub=0;S.round=null;S.phase="vcollect";bc();
+}
+function checkVids(){
+  if(S.phase!=="vcollect"||H.pending)return;
+  const req=required();
+  if(req.length&&req.every(id=>H.vdone[id])){
+    H.pending=true;
+    setTimeout(()=>{H.pending=false;if(S.phase==="vcollect")startVideos()},1200);
+  }
+}
+function startVideos(){
+  const vs=H.vids.filter(v=>S.players.some(x=>x.id===v.owner));
+  if(!vs.length)return;
+  H.pool=shuffle(vs).slice(0,S.rounds);H.idx=-1;S.total=H.pool.length;H.vowner=null;
   nextRound();
 }
 /* Gossip Wheel: alle schreiben, dann werden die Karten nacheinander aufgedeckt */
@@ -847,6 +979,12 @@ function nextRound(){
     S.round={idx:H.idx,type:"tod",target:tid,cat:null,kind:null,text:null};S.phase="choose";return bc();
   }
   const it=H.pool[H.idx];
+  if(S.mode==="wholiked"){
+    H.vowner=it.owner;H.answers={[it.owner]:"own"};S.answered=[it.owner];
+    S.round={idx:H.idx,type:"liked",cat:null,text:"",url:it.u,kind:it.k,embed:embedFor(it)};S.phase="answer";
+    if(it.owner===pid)ownIdx=H.idx;else if(conns[it.owner])try{conns[it.owner].send({t:"own",idx:H.idx})}catch(e){}
+    return bc();
+  }
   S.round={idx:H.idx,type:S.mode==="never"?"never":"likely",cat:it.cat,text:it.text};S.phase="answer";bc();
 }
 function doReveal(){
@@ -855,6 +993,12 @@ function doReveal(){
     const yes=Object.keys(ans).filter(id=>ans[id]==="ja"&&S.players.some(x=>x.id===id));
     const no=Object.keys(ans).filter(id=>ans[id]==="nein"&&S.players.some(x=>x.id===id));
     S.reveal={yes,no};S.phase="reveal";return bc();
+  }
+  if(S.round.type==="liked"){
+    const owner=H.vowner,guess=Object.keys(ans).filter(id=>id!==owner&&S.players.some(x=>x.id===id));
+    guess.forEach(id=>{counts[ans[id]]=(counts[ans[id]]||0)+1});
+    const right=guess.filter(id=>ans[id]===owner),wrong=guess.filter(id=>ans[id]!==owner);
+    S.reveal={owner,counts,right,wrong};S.phase="reveal";return bc();
   }
   Object.values(ans).forEach(v=>{if(S.players.some(x=>x.id===v))counts[v]=(counts[v]||0)+1});
   const max=Math.max(0,...Object.values(counts));
@@ -869,6 +1013,7 @@ function clientData(d,g,si){
   if(d.t==="hb")return;
   if(d.t==="chat"){chatIn(d.m);return}
   if(d.t==="chats"){(d.m||[]).forEach(m=>chatIn(m,true));return}
+  if(d.t==="own"){ownIdx=+d.idx;render(true);return}
   if(d.t==="avs"){for(const k in d.m){const a=cleanAv(d.m[k]);if(a)AV[k]=a}render();return}
   if(d.t==="s"){g.got=true;if(si!=null)srvI=si;clearTimeout(g.timer);S=d.s;status="";lost=false;render()}
   else if(d.t==="err"){clearTimeout(g.timer);fail(d.m)}
@@ -1008,17 +1153,17 @@ function vLobby(){
       `${Object.entries(MODES).map(([k,n])=>`<button class="opt ${S.mode===k?"on":""}" data-a="mode" data-v="${k}"><span class="who"><span class="emo">${MODEI[k]}</span><span>${n}<br><small>${MODEX[k]}</small></span></span>${S.mode===k?'<span class="ck">✓</span>':""}</button>`).join("")}
       <p class="mut" style="font-size:14px">${MODEH[S.mode]}</p>
       <h2 style="margin:6px 0 0">${S.mode==="gossip"?"Durchgänge":"Runden"}</h2><div class="seg">${(S.mode==="gossip"?[1,2,3]:[5,10,15,20,30]).map(n=>`<button class="${(S.mode==="gossip"?S.passes:S.rounds)===n?"on":""}" data-a="${S.mode==="gossip"?"passes":"rounds"}" data-v="${n}">${n}</button>`).join("")}</div>`);
-    h2+=acc("cats","Kategorien",`${S.cats.length} von ${nc} aktiv`,
+    if(S.mode!=="wholiked")h2+=acc("cats","Kategorien",`${S.cats.length} von ${nc} aktiv`,
       `${Object.entries(CATS).map(([k,c])=>`<button class="opt ${S.cats.includes(k)?"on":""}" data-a="cat" data-v="${k}"><span class="who"><span class="emo">${c.e}</span><span>${esc(c.n)}<br><small>${esc(c.d)}</small></span></span>${S.cats.includes(k)?'<span class="ck">✓</span>':""}</button>`).join("")}
       <div class="row"><button class="btn sec" data-a="allcats">Alle</button><button class="btn sec" data-a="nocats">Keine</button></div>`);
     h2+=acc("ban","Gesperrte Wörter",H.banned.length?H.banned.length+" gesperrt":"Keine",
       `<div class="chips">${H.banned.map(w=>`<span class="chip">${esc(w)}<button data-a="unban" data-v="${esc(w)}" aria-label="Entfernen">✕</button></span>`).join("")||'<span class="mut" style="font-size:14px">Keine Wörter gesperrt.</span>'}</div>
       <div class="row" style="align-items:stretch"><input type="text" id="bw" maxlength="30" placeholder="Wort sperren" autocomplete="off"><button class="btn sec" data-a="ban" style="width:96px;flex:none;padding:8px">Sperren</button></div>
       <p class="mut" style="font-size:13px">Diese Wörter werden in allen Texten automatisch durch „...“ ersetzt (Groß- und Kleinschreibung egal). Nur du siehst die Liste.</p>`);
-    const why=need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}`:!S.cats.length?"Wähle mindestens eine Kategorie":"";
-    bar=dock(`${why?`<p>${why}</p>`:""}<button class="btn" data-a="start" ${on<3||!S.cats.length?"disabled":""}>Spiel starten</button>`);
+    const why=need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}`:(!S.cats.length&&S.mode!=="wholiked")?"Wähle mindestens eine Kategorie":"";
+    bar=dock(`${why?`<p>${why}</p>`:""}<button class="btn" data-a="start" ${on<3||(!S.cats.length&&S.mode!=="wholiked")?"disabled":""}>Spiel starten</button>`);
   } else {
-    h2+=`<div class="card"><h2>Einstellungen</h2><p>${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}</p><p class="mut" style="font-size:14px;margin-top:4px">${S.cats.map(k=>esc(CATS[k].n)).join(", ")||"Keine Kategorie"}</p></div>`;
+    h2+=`<div class="card"><h2>Einstellungen</h2><p>${esc(MODES[S.mode])} · ${S.mode==="gossip"?S.passes+(S.passes>1?" Durchgänge":" Durchgang"):S.rounds+" Runden"}</p><p class="mut" style="font-size:14px;margin-top:4px">${S.mode==="wholiked"?"Videos von den Mitspielern":S.cats.map(k=>esc(CATS[k].n)).join(", ")||"Keine Kategorie"}</p></div>`;
     bar=dock(`<p>${need?`Noch ${need} ${need===1?"Spieler fehlt":"Spieler fehlen"}. `:""}Warte, bis ${esc(pname(S.hostPid))} das Spiel startet …</p>`);
   }
   return h2+bar;
@@ -1068,7 +1213,51 @@ function vCard(){
   <div class="grow"></div>
   ${dock(isHost()?`<button class="btn" data-a="gnext">${last?(S.pass+1<S.passes?"Nächster Durchgang":"Fertig"):"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`)}`;
 }
+function vCollect(){
+  const key=S.code+S.gen;if(vCollect.k!==key){vCollect.k=key;vstage=[];vtext="";vsent=false}
+  const w=wstText();
+  const foot=`<p class="c mut" id="wst" style="font-size:14px">${w.txt}</p>
+  ${isHost()?`<button class="btn sec" id="gob" data-a="vgo" ${S.nsub?"":"disabled"}>Los geht's</button>`:""}`;
+  if(vsent)return `${header()}<div class="tag">Who Liked</div><div class="grow stack" style="justify-content:center"><div class="card c"><p style="font-size:20px;font-weight:700">Abgegeben</p><p class="mut" style="font-size:14px">Warte auf die anderen. Niemand sieht, von wem welches Video kommt.</p></div></div>${foot}`;
+  const sv=savedLikes();
+  const list=vstage.length?`<div class="stack">${vstage.map((v,i)=>`<div class="pl"><span class="who" style="overflow-wrap:anywhere">${v.k==="tiktok"||v.k==="tiktokshort"?"🎵":v.k==="instagram"?"📸":"▶️"} ${esc(v.u.replace(/^https:\/\/(www\.)?/,"").slice(0,38))}</span><button class="link" data-a="vdel" data-v="${i}" aria-label="Entfernen">✕</button></div>`).join("")}</div>`:`<p class="mut" style="font-size:14px">Noch keine Videos ausgewählt.</p>`;
+  return `${header()}<div class="tag">Who Liked</div>
+  <div class="card stack"><h2>Deine Videos (${vstage.length} / 5)</h2>${list}
+    ${sv.length?`<button class="btn sec" data-a="vpick">5 zufällige Likes aus meinem Import wählen (${sv.length} gespeichert)</button>`:""}
+    <button class="btn sec" data-a="vimp">Likes aus Daten-Export importieren</button>
+    <input type="file" id="lk" accept=".zip,.json,.txt,.html,.htm" hidden>
+    ${likeMsg?`<p class="mut" style="font-size:14px">${esc(likeMsg)}</p>`:""}
+    <label for="vt">Oder Links einfügen</label>
+    <textarea id="vt" placeholder="Links zu TikTok-, Instagram- oder YouTube-Videos, die du geliked hast" maxlength="1500">${esc(vtext)}</textarea>
+    <button class="btn sec" data-a="vadd">Links hinzufügen</button>
+    <button class="btn" data-a="vsend" ${vstage.length?"":"disabled"}>Abgeben</button>
+    <p class="mut" style="font-size:13px">Die Videos werden erst beim Raten eingebettet und kommen von TikTok, Instagram oder YouTube, die dabei eigene Cookies setzen können. Deine Export-Datei wird nicht hochgeladen, sie wird nur auf deinem Handy gelesen.</p></div>${foot}`;
+}
+function vLiked(){
+  const r=S.round,need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
+  const mineNow=ownIdx===r.idx,done=S.answered.includes(pid);
+  const embed=EMBED_OK.test(r.embed||"")?`<div class="vidwrap"><iframe class="vid" src="${esc(r.embed)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="Video"></iframe></div>`:"";
+  const open=OPEN_OK.test(r.url||"")?`<a class="btn sec" style="text-align:center;text-decoration:none" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Video öffnen</a>`:"";
+  const body=mineNow
+    ?`<div class="card c"><p style="font-size:20px;font-weight:700">Das ist dein Video</p><p class="mut" style="font-size:14px">Die anderen raten gerade, wer es geliked hat. Bleib ruhig.</p></div>`
+    :`<p class="c" style="font-weight:700">Wer hat das geliked?</p><div class="grid">${S.players.filter(p=>p.id!==pid).map(p=>`<button class="opt big ${mine===p.id?"on":""} ${p.online?"":"mut"}" data-a="ans" data-v="${esc(p.id)}">${esc(p.name)}</button>`).join("")}</div>`;
+  return `${rhead()}${embed}${open}<div class="stack">${body}<p class="c mut" style="font-size:14px">${done&&!mineNow?"Tipp gespeichert (du kannst ihn noch ändern). ":""}${got} / ${need} haben getippt</p></div>
+  ${isHost()?`<button class="btn sec" data-a="reveal" ${got?"":"disabled"}>Jetzt auflösen</button>`:""}`;
+}
+function vLikedReveal(nextBtn){
+  const r=S.round,v=S.reveal;
+  const rows=S.players.filter(p=>p.id!==v.owner).map(p=>[p,v.counts[p.id]||0]);rows.unshift([S.players.find(p=>p.id===v.owner)||{id:v.owner,name:"?"},v.counts[v.owner]||0]);
+  const drinkers=v.right.length?v.wrong:[v.owner];
+  const max=Math.max(0,...rows.map(x=>x[1]));
+  return `${rhead()}<div class="stack">
+  <div class="card c"><p class="mut" style="font-size:13px;font-weight:700">Es war</p>${face(v.owner,pname(v.owner),"f88")}<p class="who2" style="font-size:34px;font-weight:800;margin-top:6px">${esc(pname(v.owner))}</p>
+    <p class="mut" style="font-size:14px;margin-top:6px">${v.right.length?`${v.right.length} von ${v.right.length+v.wrong.length} lagen richtig.`:"Niemand hat es erraten."}</p></div>
+  <div class="card c"><span class="drink">🍻</span><p class="mut" style="font-size:13px;font-weight:700">Trinkt</p>${drinkers.length?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0">${drinkers.map(id=>face(id,pname(id),"f64")).join("")}</div><p style="font-size:24px;font-weight:800">${drinkers.map(id=>esc(pname(id))).join(" & ")}</p>`:`<p style="font-size:22px;font-weight:700">Niemand</p>`}</div>
+  <div class="card">${rows.map(([p,c])=>`<div class="bar ${c===max&&c>0?"top":""}"><div class="l"><span class="who">${face(p.id,p.name,"f28")}${esc(p.name)}</span><span>${c}</span></div><div class="b"><i data-w="${max?c/max*100:0}"></i></div></div>`).join("")}</div></div>
+  ${nextBtn}`;
+}
 function vAnswer(){
+  if(S.round.type==="liked")return vLiked();
   const r=S.round,need=required().length,got=S.answered.filter(id=>required().includes(id)).length;
   const done=S.answered.includes(pid);
   const body=r.type==="never"
@@ -1082,6 +1271,7 @@ function vReveal(){
   const r=S.round,v=S.reveal;
   const last=r.idx+1>=S.total;
   const nextBtn=dock(isHost()?`<button class="btn" data-a="next">${last?"Fertig":"Weiter"}</button>`:`<p>Warte auf ${esc(pname(S.hostPid))} …</p>`);
+  if(r.type==="liked")return vLikedReveal(nextBtn);
   if(r.type==="never"){
     const n=v.yes.length,tot=v.yes.length+v.no.length;
     const rows=S.players.filter(p=>v.yes.includes(p.id)||v.no.includes(p.id)).sort((a,b)=>v.yes.includes(b.id)-v.yes.includes(a.id));
@@ -1135,7 +1325,7 @@ function notices(){
 }
 function render(force){
   chatSync();
-  if(!force&&S&&S.phase==="write"&&render.w===S.code+S.gen&&document.getElementById("wst")){
+  if(!force&&S&&(S.phase==="write"||S.phase==="vcollect")&&render.w===S.code+S.gen&&document.getElementById("wst")){
     const w=wstText();document.getElementById("wst").textContent=w.txt;
     const g=document.getElementById("gob");if(g)g.disabled=!S.nsub;
     return;
@@ -1146,6 +1336,7 @@ function render(force){
   else {
     if(S.phase==="lobby")html=vLobby();
     else if(S.phase==="write")html=vWrite();
+    else if(S.phase==="vcollect")html=vCollect();
     else if(S.phase==="card")html=vCard();
     else if(S.phase==="answer")html=vAnswer();
     else if(S.phase==="choose")html=vChoose();
@@ -1160,7 +1351,7 @@ function render(force){
   render.sk=S?key:undefined;
   render.k=key;
   notices();
-  render.w=S&&S.phase==="write"?S.code+S.gen:"";
+  render.w=S&&(S.phase==="write"||S.phase==="vcollect")?S.code+S.gen:"";
   if(html===render.h)return;
   render.h=html;
   const fresh=render.ak!==role+"|"+key,first=render.ak===undefined;
@@ -1289,6 +1480,16 @@ const A = {
   unban(d){send({t:"ban",op:"del",w:d.v})},
   start(){send({t:"start"})},
   acc(d){openSec[d.v]=!openSec[d.v];render(true)},
+  vdel(d){vstage.splice(+d.v,1);render(true)},
+  vadd(){
+    const x=document.getElementById("vt");if(x)vtext=x.value;
+    const found=parseLinks(vtext,50);
+    if(!found.length){toast("Kein passender Link gefunden");return}
+    let add=0;for(const v of found){if(vstage.length>=5)break;if(!vstage.some(s=>s.u===v.u)){vstage.push(v);add++}}
+    vtext="";likeMsg="";toast(add?add+(add===1?" Link hinzugefügt":" Links hinzugefügt"):"Schon vorhanden");render(true)},
+  vpick(){vstage=shuffle(savedLikes()).slice(0,5);likeMsg="";render(true)},
+  vimp(){const i=document.getElementById("lk");if(i)i.click()},
+  vsend(){if(!vstage.length)return;send({t:"vsub",links:vstage});vsent=true;render(true)},
   pick(d){draft.target=d.v;render(true);const f=document.getElementById("wform");if(f){f.scrollIntoView({block:"center",behavior:"smooth"});const x=document.getElementById("ft");if(x)x.focus({preventScroll:true})}},
   fill(){
     const K=KINDS[draft.stage],nm=draft.target?pname(draft.target):"";
@@ -1316,12 +1517,23 @@ const A = {
 $app.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(b&&!b.disabled&&A[b.dataset.a])A[b.dataset.a](b.dataset)});
 function keepName(){const n=document.getElementById("nm");if(n)myName=n.value}
 $app.addEventListener("change",async e=>{
+  if(e.target.id==="lk"&&e.target.files[0]){
+    const f=e.target.files[0];e.target.value="";
+    try{
+      const x=document.getElementById("vt");if(x)vtext=x.value;
+      const got=await importLikes(f);
+      if(!got.length)likeMsg="In dieser Datei wurden keine Likes gefunden. Nimm die Datei aus dem Daten-Download (TikTok: user_data, Instagram: liked_posts).";
+      else{ls.set("ex_likes",JSON.stringify(got));vstage=got.slice(0,5);likeMsg=got.length+" Likes gefunden und gespeichert. 5 davon sind ausgewählt.";toast(got.length+" Likes importiert")}
+    }catch(err2){likeMsg="Die Datei konnte nicht gelesen werden. Entpacke die ZIP-Datei oder wähle die JSON-Datei darin."}
+    render(true);return;
+  }
   if(e.target.id!=="fi"||!e.target.files[0])return;
   keepName();
   try{myAv=await readImg(e.target.files[0]);ls.set("ex_av",myAv)}catch(x){err="Das Bild konnte nicht gelesen werden.";}
   render(true);
 });
 $app.addEventListener("input",e=>{
+  if(e.target.id==="vt"){vtext=e.target.value;return}
   if(e.target.id!=="ft")return;
   draft.text=e.target.value;
   const b=document.getElementById("sb");if(b)b.disabled=!draft.text.trim();
