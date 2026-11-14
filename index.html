@@ -193,6 +193,10 @@ body.hasdock #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
 /* Meldung */
 #toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100vw - 32px)}
 #toast div{background:#EDEDED;color:#121212;font-size:14px;font-weight:600;padding:10px 16px;border-radius:99px;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:toastin .45s var(--pop) both;backdrop-filter:blur(12px)}
+#sheet{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center}
+#sheet[hidden]{display:none}
+.sbg{position:absolute;inset:0;background:rgba(0,0,0,.55);animation:fade .25s ease both}
+.sbox{position:relative;width:100%;max-width:480px;max-height:85vh;overflow:auto;background:rgba(28,28,30,.94);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;animation:sheet .45s var(--ease) both}
 @keyframes wig{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @keyframes fly{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1}100%{transform:translateY(-55vh) scale(1.4) rotate(14deg);opacity:0}}
@@ -203,6 +207,7 @@ body.hasdock #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
 <div id="app"></div>
 <div id="chat"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="sheet" hidden></div>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="qrcode.js"></script>
 <script>
@@ -379,7 +384,7 @@ function cleanup(){
   try{relay&&relay.close()}catch(e){}relay=null;
   if(jg){try{jg.stop()}catch(e){}jg=null}
   try{wake&&wake.release()}catch(e){}wake=null;
-  myRole=null;showRole=true;tlSent=false;AV={};chat=[];unread=0;chatOpen=false;peer=null;conn=null;conns={};S=null;H=null;role=null;lost=false;mine=null;status="";ss.del("ex_room");
+  snap=null;hoNote=null;lostAt=0;clearTimeout(snapT);myRole=null;showRole=true;tlSent=false;AV={};chat=[];unread=0;chatOpen=false;peer=null;conn=null;conns={};S=null;H=null;role=null;lost=false;mine=null;status="";ss.del("ex_room");
   try{localStorage.removeItem("ex_host")}catch(e){}
 }
 /* Display wach halten, solange man im Raum ist (verhindert Sperrbildschirm) */
@@ -388,7 +393,7 @@ async function getWake(){
 }
 function fail(m){cleanup();err=m;render()}
 /* Verbindungstest: findet heraus, ob Webzugang, WebSocket und WebRTC zum Vermittlungsserver klappen */
-const BUILD="2026-12-04.1";
+const BUILD="2026-11-14.1";
 const timeoutP=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),ms));
 async function runDiag(){
   diag={lines:[],done:false,sum:""};
@@ -607,6 +612,67 @@ function rejoinSoon(ms){
   retryT=setTimeout(()=>{if(role==="client"&&room)joinRoom(room.code,room.name,true)},ms);
 }
 
+/* ---------- Host-Übergabe ----------
+   Der Host schickt seinen Stand regelmäßig an zwei Ersatz-Hosts. Fällt er aus oder gibt er bewusst ab,
+   übernimmt eine dieser Personen mit dem letzten Stand. Der Raum-Code und alle Spieler bleiben gleich. */
+function snapNow(){
+  if(role!=="host"||!S||!H)return;
+  const bk=S.players.filter(p=>p.online&&p.id!==pid&&conns[p.id]&&conns[p.id].open).slice(0,2);
+  if(!bk.length)return;
+  const {timer,rate,av,pending,...h}=H;
+  try{if(JSON.stringify({s:S,h}).length>200000)return}catch(e){return}
+  bk.forEach((p,i)=>{try{conns[p.id].send({t:"snap",r:i,s:S,h})}catch(e){}});
+}
+function handOver(id){
+  if(role!=="host"||!S||!H)return;
+  const t=S.players.find(x=>x.id===id&&x.online&&x.id!==pid),c=conns[id];
+  if(!t||!c||!c.open){toast("Diese Person ist gerade nicht erreichbar");return}
+  const {timer,rate,av,pending,...h}=H;
+  try{c.send({t:"snap",r:0,fin:true,s:S,h})}catch(e){toast("Übergabe fehlgeschlagen");return}
+  for(const k in conns)if(k!==id)try{conns[k].send({t:"hov",n:t.name})}catch(e){}
+  const code=S.code,nm=pname(pid);
+  setTimeout(()=>{cleanup();err="";joinRoom(code,nm,false);toast("Du bist jetzt Spieler, "+t.name+" ist Host")},900);
+}
+function toClient(code,nm){toast("Ein anderer Host hat übernommen");cleanup();err="";joinRoom(code,nm||myName,false)}
+function becomeHost(sn){
+  if(role==="host"||!sn||!sn.s||!sn.h)return;
+  clearTimeout(retryT);
+  try{jg&&jg.stop()}catch(e){}jg=null;
+  try{peer&&peer.destroy()}catch(e){}peer=null;conn=null;ss.del("ex_room");
+  const s=JSON.parse(JSON.stringify(sn.s)),h=JSON.parse(JSON.stringify(sn.h));
+  const old=s.hostPid;
+  if(!s.players.some(p=>p.id===pid)){fail("Übernahme nicht möglich.");return}
+  s.hostPid=pid;h.av=Object.assign({},AV);
+  room=null;lost=false;lostAt=0;hoNote=null;snap=null;
+  hostRoom(null,{S:s,H:h,takeover:true,from:old});
+}
+function afterTakeover(){
+  if(role!=="host"||!S||!H)return;
+  H.pending=false;
+  if(S.mode==="imp"&&H.imp&&["irole","ihint","ivote","iguess"].includes(S.phase))sendRole(pid);
+  toast("Du bist jetzt Host");
+}
+function sheetOpen(){
+  const el=document.getElementById("sheet");if(!el||!S)return;
+  const others=S.players.filter(p=>p.id!==pid&&p.online);
+  el.innerHTML=`<div class="sbg" data-sh="x"></div><div class="sbox" role="dialog" aria-modal="true" aria-label="Raum verwalten"><h2>Raum verwalten</h2>
+  ${others.length?`<p class="mut" style="font-size:14px">Host abgeben: Die Person übernimmt Spielstand und Steuerung. Du bleibst als Spieler im Raum.</p><div class="stack">${others.map(p=>`<button class="opt" data-sh="to" data-v="${esc(p.id)}"><span class="who">${face(p.id,p.name,"f28")}${esc(p.name)}</span><span class="mut">Übergeben</span></button>`).join("")}</div>`:`<p class="mut" style="font-size:14px">Es ist niemand sonst online, an den du abgeben könntest.</p>`}
+  <button class="btn sec" data-sh="end">Raum für alle schließen</button><button class="link" data-sh="x" style="align-self:center">Abbrechen</button></div>`;
+  el.hidden=false;
+}
+function sheetClose(){const el=document.getElementById("sheet");if(el){el.hidden=true;el.innerHTML=""}}
+document.getElementById("sheet").addEventListener("click",e=>{
+  const b=e.target.closest("[data-sh]");if(!b)return;
+  const a=b.dataset.sh;
+  if(a==="x")return sheetClose();
+  if(a==="to"){sheetClose();return handOver(b.dataset.v)}
+  if(a==="end"){
+    if(!confirm("Raum schließen? Das beendet das Spiel für alle."))return;
+    sheetClose();
+    for(const id in conns)try{conns[id].send({t:"end"})}catch(x){}
+    setTimeout(()=>{cleanup();err="";render()},250);
+  }
+});
 /* ---------- Host (hält den Spielstand) ---------- */
 function hostRoom(name,restore){
   role="host";status=restore?"Raum wird wiederhergestellt …":"Raum wird erstellt …";err="";render();
@@ -627,13 +693,19 @@ function hostRoom(name,restore){
         H.items=shuffle(H.items);delete H.subs;
       }
       chat=H.chat.slice();
-      S.players.forEach(x=>{if(x.id!==S.hostPid){x.online=false;x.off=Date.now()}else x.online=true});
+      if(restore.takeover){
+        /* Mitspieler gelten 20 s lang als da, damit Runden nicht ohne sie weiterlaufen; wer nicht zurückkommt, wird dann offline gesetzt */
+        H.grace=Date.now()+20000;H.tk=true;
+        const o=S.players.find(x=>x.id===restore.from);if(o&&o.id!==pid){o.online=false;o.off=Date.now()}
+        S.players.forEach(x=>{if(x.id===pid)x.online=true});
+      } else S.players.forEach(x=>{if(x.id!==S.hostPid){x.online=false;x.off=Date.now()}else x.online=true});
     } else {
       S={code,hostPid:pid,phase:"lobby",players:[{id:pid,name,online:true}],mode:"gossip",cats:Object.keys(CATS),rounds:10,passes:1,pass:0,gen:0,nsub:0,round:null,card:null,answered:[],reveal:null};
       H={answers:{},pool:[],idx:0,timer:null,banned:loadBan(),done:{},items:[],cards:[],ci:0,av:{},chat:[],cn:0,rate:{},stats:{drinks:{},cards:{},cardsPlayed:0,tod:{truth:0,dare:0},fooled:{},impWins:{},impPlays:{}},tl:{},votes:{},seen:{}};
       if(myAv)H.av[pid]=myAv;
     }
     AV=H.av;status="";bc();
+    if(restore&&restore.takeover)setTimeout(afterTakeover,400);
   };
   const wire=c=>{
     c._rx=Date.now();
@@ -658,9 +730,12 @@ function hostRoom(name,restore){
         if(restore){
           restore.tries=(restore.tries||0)+1;
           if(restore.tries<20)return void(clearTimeout(retryT),retryT=setTimeout(()=>startPeer(0,si),3000));
-          if(!inited)fail("Der alte Raum konnte nicht wiederhergestellt werden.");
+          /* nach etwa 60 s: hält jemand anderes den Raum und ist hier niemand, bin ich nur noch Spieler */
+          const nm0=(restore.S.players.find(x=>x.id===pid)||{}).name;
+          if(!inited||!S.players.some(x=>x.id!==pid&&x.online))toClient(restore.S.code,nm0);
           return;
         }
+        if(inited&&!Object.keys(conns).length&&S.players.some(x=>x.id!==pid)){toClient(S.code,pname(pid));return}
         if(inited&&(S.players.length>1||S.phase!=="lobby"))return;   /* Raum läuft schon über den Ersatzweg */
         R.close();relay=null;S=null;H=null;hostRoom(name);
       }
@@ -683,7 +758,7 @@ function saveHost(){
   try{const {timer,...h}=H;localStorage.setItem("ex_host",JSON.stringify({ts:Date.now(),S,H:h}))}catch(e){}
 }
 function bc(){
-  if(role==="host"){for(const id in conns){try{conns[id].send({t:"s",s:S})}catch(e){}}saveHost()}
+  if(role==="host"){for(const id in conns){try{conns[id].send({t:"s",s:S})}catch(e){}}saveHost();clearTimeout(snapT);snapT=setTimeout(snapNow,600)}
   render();
 }
 function onHost(c,d){
@@ -1007,9 +1082,17 @@ function clientData(d,g,si){
   if(d.t==="hb")return;
   if(d.t==="chat"){chatIn(d.m);return}
   if(d.t==="chats"){(d.m||[]).forEach(m=>chatIn(m,true));return}
+  if(d.t==="snap"){
+    if(d.s&&d.h&&room&&d.s.code===room.code){
+      snap={r:+d.r||0,s:d.s,h:d.h};
+      if(d.fin){const sn=snap;snap=null;toast("Du wirst jetzt Host …");setTimeout(()=>{if(role==="client")becomeHost(sn)},1200)}
+    }
+    return}
+  if(d.t==="hov"){hoNote={n:String(d.n||"").slice(0,16),at:Date.now()};toast((hoNote.n||"Jemand")+" wird Host …");render(true);return}
+  if(d.t==="end"){snap=null;fail("Der Host hat den Raum geschlossen.");return}
   if(d.t==="role"){if(jg===g&&d&&typeof d.idx==="number"){myRole={idx:d.idx,cat:String(d.cat||"").slice(0,40),word:d.word==null?null:String(d.word).slice(0,40)};showRole=true;render(true)}return}
   if(d.t==="avs"){for(const k in d.m){const a=cleanAv(d.m[k]);if(a)AV[k]=a}render();return}
-  if(d.t==="s"){g.got=true;if(si!=null)srvI=si;clearTimeout(g.timer);S=d.s;status="";lost=false;render()}
+  if(d.t==="s"){g.got=true;if(si!=null)srvI=si;clearTimeout(g.timer);if(snap&&snap.s.hostPid!==d.s.hostPid)snap=null;if(hoNote&&d.s.hostPid!==(S&&S.hostPid))hoNote=null;S=d.s;status="";lost=false;render()}
   else if(d.t==="err"){clearTimeout(g.timer);fail(d.m)}
 }
 function joinRoom(code,name,keep,n,si){
@@ -1084,8 +1167,9 @@ function joinRoom(code,name,keep,n,si){
   });
 }
 function send(m){
-  if(role==="host")act(pid,m);
-  else if(conn&&conn.open)conn.send(m);
+  if(role==="host"){act(pid,m);return true}
+  if(conn&&conn.open){try{conn.send(m);return true}catch(e){}}
+  toast("Gerade keine Verbindung. Versuch es gleich noch einmal.");return false;
 }
 
 /* ---------- Ansichten ---------- */
@@ -1105,7 +1189,7 @@ function acc(id,title,sum,body){
   return `<div class="card acc ${o?"open":""}"><button data-a="acc" data-v="${id}" aria-expanded="${o}"><span><b>${title}</b><small>${sum}</small></span><i>›</i></button>${o?`<div class="body">${body}</div>`:""}</div>`;
 }
 function header(){
-  return `<header><span class="brand">${logo()}Round Two</span><span>${S?`Raum ${esc(S.code)} · `:""}<button class="link" data-a="snd" aria-label="Ton">${snd?"🔔":"🔕"}</button> <button class="link" data-a="leave">Verlassen</button></span></header>`;
+  return `<header><span class="brand">${logo()}Round Two</span><span>${S?`Raum ${esc(S.code)} · `:""}<button class="link" data-a="snd" aria-label="Ton">${snd?"🔔":"🔕"}</button> <button class="link" data-a="leave">${S&&isHost()?"Menü":"Verlassen"}</button></span></header>`;
 }
 function vDiag(){
   return `<header><span class="brand">${logo()}Round Two</span><span></span></header>
@@ -1171,6 +1255,7 @@ function rhead(){
 const KINDS=[{k:"challenge",n:"Challenge",f:"Aufgabe für",e:"🎯",c:"#6B6B73"},{k:"question",n:"Frage",f:"Frage an",e:"💬",c:"#6B6B73"},{k:"gossip",n:"Gerücht",f:"Gerücht über",e:"🤫",c:"#6B6B73"}];
 const KCARD={challenge:{l:"Challenge für",r:"Machen oder trinken."},question:{l:"Frage an",r:"Ehrlich antworten oder trinken."},gossip:{l:"Gerücht über",r:"Stimmt es? Ehrlich sagen oder trinken."}};
 let draft={key:""};
+let snap=null, hoNote=null, lostAt=0, snapT=null;
 let myRole=null, showRole=true, tlDraft={key:"",s:["","",""],lie:-1}, tlSent=false;
 function newDraft(key){return {key,stage:0,target:null,text:"",sent:[]}}
 function wstText(){
@@ -1380,7 +1465,8 @@ function render(force){
     else if(S.phase==="tcard")html=vTcard();
     else if(S.phase==="reveal")html=vReveal();
     else html=vEnd();
-    if(lost)html=`<div class="err" role="alert"><b>Verbindung verloren.</b> Wir versuchen es automatisch weiter.<br><button class="link" data-a="reconnect" style="color:var(--text);padding-left:0">Jetzt neu verbinden</button></div>`+html;
+    if(lost&&hoNote&&Date.now()-hoNote.at<40000)html=`<div class="err" role="status"><b>${esc(hoNote.n||"Jemand")} wird Host.</b> Das dauert einen Moment, du musst nichts tun.</div>`+html;
+    else if(lost)html=`<div class="err" role="alert"><b>Verbindung verloren.</b> Wir versuchen es automatisch weiter.<br><button class="link" data-a="reconnect" style="color:var(--text);padding-left:0">Jetzt neu verbinden</button></div>`+html;
   }
   const key=S?S.code+S.phase+(S.round?S.round.idx:"")+(S.card?S.card.i:"")+(S.pass||""):"";
   if(mine!==null&&render.k!==key)mine=null;
@@ -1504,7 +1590,7 @@ const A = {
     if(c.length!==4){err="Der Code hat 4 Buchstaben.";return render()}
     myName=n;ls.set("ex_name",n);joinRoom(c,n)},
   snd(){snd=!snd;ls.set("ex_snd",snd?"1":"0");unlock();render(true)},
-  leave(){if(S&&role==="host"&&!confirm("Raum schließen? Das beendet das Spiel für alle."))return;if(role==="client"&&conn&&conn.open)try{conn.send({t:"bye"})}catch(e){}cleanup();err="";render()},
+  leave(){if(S&&role==="host"){sheetOpen();return}if(role==="client"&&conn&&conn.open)try{conn.send({t:"bye"})}catch(e){}cleanup();err="";render()},
   reconnect(){if(room)joinRoom(room.code,room.name,true)},
   mode(d){send({t:"set",mode:d.v,cats:S.cats,rounds:S.rounds})},
   tod(d){send({t:"tod",v:d.v})},
@@ -1518,10 +1604,10 @@ const A = {
   start(){send({t:"start"})},
   acc(d){openSec[d.v]=!openSec[d.v];render(true)},
   tlie(d){tlDraft.lie=+d.v;render(true)},
-  tsend(){const ok=tlDraft.s.every(x=>x.trim())&&tlDraft.lie>=0;if(!ok)return;send({t:"tsub",s:tlDraft.s,lie:tlDraft.lie});tlSent=true;render(true)},
+  tsend(){const ok=tlDraft.s.every(x=>x.trim())&&tlDraft.lie>=0;if(!ok)return;if(!send({t:"tsub",s:tlDraft.s,lie:tlDraft.lie}))return;tlSent=true;render(true)},
   tgo(){send({t:"tgo"})},
   isee(){send({t:"isee"})},igo(){send({t:"igo"})},inext(){send({t:"inext"})},
-  ivote(d){mine=d.v;send({t:"ivote",v:d.v});if(role==="client")render()},
+  ivote(d){if(!send({t:"ivote",v:d.v}))return;mine=d.v;if(role==="client")render()},
   iguess(d){send({t:"iguess",v:d.v})},
   rolesw(){showRole=!showRole;render(true)},
   pick(d){draft.target=d.v;render(true);const f=document.getElementById("wform");if(f){f.scrollIntoView({block:"center",behavior:"smooth"});const x=document.getElementById("ft");if(x)x.focus({preventScroll:true})}},
@@ -1532,13 +1618,13 @@ const A = {
     draft.text=tx;render(true)},
   sendsub(){
     if(!draft.target||!draft.text.trim())return;
-    send({t:"sub",kind:KINDS[draft.stage].k,target:draft.target,text:draft.text});
+    if(!send({t:"sub",kind:KINDS[draft.stage].k,target:draft.target,text:draft.text}))return;
     toast(KINDS[draft.stage].n+" für "+pname(draft.target)+" gesendet");
     draft.sent.push({stage:draft.stage,id:draft.target});
     draft.stage++;draft.target=null;draft.text="";render(true)},
   go(){send({t:"go"})},
   gnext(){send({t:"gnext"})},
-  ans(d){mine=d.v;send({t:"ans",v:d.v});if(role==="client")render()},
+  ans(d){if(!send({t:"ans",v:d.v}))return;mine=d.v;if(role==="client")render()},
   reveal(){send({t:"reveal"})},
   next(){send({t:"next"})},
   again(){send({t:"again"})},
@@ -1576,6 +1662,13 @@ setInterval(()=>{
       else try{c.send({t:"hb"})}catch(e){}
     }
     if(relay&&relay.gc)relay.gc();
+    if(H&&H.grace&&now>H.grace){
+      H.grace=0;
+      if(H.tk&&!S.players.some(p=>p.id!==pid&&p.online)){H.tk=false;return toClient(S.code,pname(pid))}   /* niemand ist zurückgekommen: wahrscheinlich lebt der alte Host noch */
+      H.tk=false;let ch=false;
+      S.players.forEach(p=>{if(p.id!==pid&&p.online&&!conns[p.id]){p.online=false;p.off=now;ch=true}});
+      if(ch){try{checkAll();checkSubs();checkTl();checkVotes();checkIRole()}catch(e){}bc()}
+    }
     if(S.phase==="lobby"){
       const n=S.players.length;
       S.players=S.players.filter(p=>p.online||p.id===S.hostPid||now-(p.off||now)<60000);
@@ -1584,6 +1677,12 @@ setInterval(()=>{
   } else if(role==="client"&&room){
     if(conn&&conn.open)try{conn.send({t:"ping"})}catch(e){}
     if(S&&!lost&&Date.now()-lastRx>14000){lost=true;render();joinRoom(room.code,room.name,true)}
+    /* Host weg? Dann übernimmt der Ersatz-Host mit dem letzten Stand */
+    if(lost){
+      lostAt=lostAt||Date.now();
+      const wait=(hoNote&&Date.now()-hoNote.at<40000?25000:15000)+(snap?snap.r*10000:0);
+      if(snap&&navigator.onLine!==false&&Date.now()-lostAt>wait){const sn=snap;snap=null;lostAt=0;toast("Du übernimmst als Host");becomeHost(sn)}
+    } else lostAt=0;
   }
 },4000);
 /* Zurück aus dem Hintergrund: sofort neu verbinden bzw. Zustand neu senden */
