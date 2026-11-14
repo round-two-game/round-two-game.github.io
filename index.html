@@ -193,6 +193,10 @@ body.hasdock #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
 /* Meldung */
 #toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100vw - 32px)}
 #toast div{background:#EDEDED;color:#121212;font-size:14px;font-weight:600;padding:10px 16px;border-radius:99px;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:toastin .45s var(--pop) both;backdrop-filter:blur(12px)}
+.pl2{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.pl2:last-child{border:0}
+.rowb{display:flex;gap:6px;flex:none}
+.btn.sm{width:auto;padding:8px 12px;font-size:14px;font-weight:600}
 #sheet{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center}
 #sheet[hidden]{display:none}
 .sbg{position:absolute;inset:0;background:rgba(0,0,0,.55);animation:fade .25s ease both}
@@ -393,7 +397,7 @@ async function getWake(){
 }
 function fail(m){cleanup();err=m;render()}
 /* Verbindungstest: findet heraus, ob Webzugang, WebSocket und WebRTC zum Vermittlungsserver klappen */
-const BUILD="2026-11-14.1";
+const BUILD="2026-11-21.1";
 const timeoutP=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),ms));
 async function runDiag(){
   diag={lines:[],done:false,sum:""};
@@ -650,13 +654,16 @@ function afterTakeover(){
   if(role!=="host"||!S||!H)return;
   H.pending=false;
   if(S.mode==="imp"&&H.imp&&["irole","ihint","ivote","iguess"].includes(S.phase))sendRole(pid);
-  toast("Du bist jetzt Host");
+  toast(restoreNote||"Du bist jetzt Host");restoreNote="";
 }
 function sheetOpen(){
   const el=document.getElementById("sheet");if(!el||!S)return;
-  const others=S.players.filter(p=>p.id!==pid&&p.online);
+  const others=S.players.filter(p=>p.id!==pid&&!((H&&H.kicked)||[]).some(k=>k.id===p.id));
   el.innerHTML=`<div class="sbg" data-sh="x"></div><div class="sbox" role="dialog" aria-modal="true" aria-label="Raum verwalten"><h2>Raum verwalten</h2>
-  ${others.length?`<p class="mut" style="font-size:14px">Host abgeben: Die Person übernimmt Spielstand und Steuerung. Du bleibst als Spieler im Raum.</p><div class="stack">${others.map(p=>`<button class="opt" data-sh="to" data-v="${esc(p.id)}"><span class="who">${face(p.id,p.name,"f28")}${esc(p.name)}</span><span class="mut">Übergeben</span></button>`).join("")}</div>`:`<p class="mut" style="font-size:14px">Es ist niemand sonst online, an den du abgeben könntest.</p>`}
+  ${others.length?`<div>${others.map(p=>`<div class="pl2"><span class="who">${face(p.id,p.name,"f28")}${esc(p.name)}${p.online?"":' <span class="mut">· offline</span>'}</span><span class="rowb">${p.online?`<button class="btn sec sm" data-sh="to" data-v="${esc(p.id)}">Host machen</button>`:""}<button class="btn sec sm" data-sh="kick" data-v="${esc(p.id)}">Entfernen</button></span></div>`).join("")}</div>
+  <p class="mut" style="font-size:13px">Host machen: Die Person übernimmt Spielstand und Steuerung, du bleibst Spieler. Entfernen: Die Person fliegt raus und kann mit diesem Namen nicht wieder rein.</p>`:`<p class="mut" style="font-size:14px">Es ist niemand sonst im Raum.</p>`}
+  <button class="btn sec" data-sh="code">Neuen Raum-Code erzeugen</button>
+  <p class="mut" style="font-size:13px;margin-top:-6px">Alle jetzigen Spieler wechseln automatisch mit. Wer nur den alten Code kennt, kommt nicht mehr rein.</p>
   <button class="btn sec" data-sh="end">Raum für alle schließen</button><button class="link" data-sh="x" style="align-self:center">Abbrechen</button></div>`;
   el.hidden=false;
 }
@@ -666,6 +673,13 @@ document.getElementById("sheet").addEventListener("click",e=>{
   const a=b.dataset.sh;
   if(a==="x")return sheetClose();
   if(a==="to"){sheetClose();return handOver(b.dataset.v)}
+  if(a==="kick"){
+    const p=S&&S.players.find(x=>x.id===b.dataset.v);if(!p)return;
+    if(!confirm(p.name+" aus dem Raum entfernen?"))return;
+    sheetClose();kickPlayer(p.id);return}
+  if(a==="code"){
+    if(!confirm("Neuen Raum-Code erzeugen? Alle jetzigen Spieler wechseln automatisch mit, der alte Code funktioniert danach nicht mehr."))return;
+    sheetClose();return newRoomCode()}
   if(a==="end"){
     if(!confirm("Raum schließen? Das beendet das Spiel für alle."))return;
     sheetClose();
@@ -673,6 +687,34 @@ document.getElementById("sheet").addEventListener("click",e=>{
     setTimeout(()=>{cleanup();err="";render()},250);
   }
 });
+/* ---------- Spieler entfernen, neuer Raum-Code ---------- */
+function kickPlayer(id){
+  if(role!=="host"||!S||!H||id===pid)return;
+  const pl=S.players.find(x=>x.id===id);if(!pl)return;
+  H.kicked=H.kicked||[];
+  if(!H.kicked.some(k=>k.id===id))H.kicked.push({id,name:pl.name.toLowerCase()});
+  const c=conns[id];
+  if(c){try{c.send({t:"kicked"})}catch(e){}c._pid=null;setTimeout(()=>{try{c.close()}catch(e){}},200)}
+  delete conns[id];delete H.av[id];
+  if(S.phase==="lobby")S.players=S.players.filter(x=>x.id!==id);
+  else{pl.online=false;pl.off=Date.now()}
+  try{checkAll();checkSubs();checkTl();checkVotes();checkIRole()}catch(e){}
+  toast(pl.name+" wurde entfernt");bc();
+}
+function newRoomCode(){
+  if(role!=="host"||!S||!H)return;
+  let c=genCode();while(c===S.code)c=genCode();
+  for(const id in conns)try{conns[id].send({t:"code",c})}catch(e){}
+  /* alte Verbindungen lösen, ohne dass die Mitspieler dabei offline gesetzt werden */
+  const oldConns=conns;conns={};for(const id in oldConns)oldConns[id]._pid=null;
+  S.code=c;
+  const s=S,h=H;
+  setTimeout(()=>{
+    if(role!=="host"||S!==s)return;
+    hostRoom(null,{S:s,H:h,takeover:true,from:pid,newcode:true});
+    for(const id in oldConns)try{oldConns[id].close()}catch(e){}
+  },500);
+}
 /* ---------- Host (hält den Spielstand) ---------- */
 function hostRoom(name,restore){
   role="host";status=restore?"Raum wird wiederhergestellt …":"Raum wird erstellt …";err="";render();
@@ -695,7 +737,7 @@ function hostRoom(name,restore){
       chat=H.chat.slice();
       if(restore.takeover){
         /* Mitspieler gelten 20 s lang als da, damit Runden nicht ohne sie weiterlaufen; wer nicht zurückkommt, wird dann offline gesetzt */
-        H.grace=Date.now()+20000;H.tk=true;
+        H.grace=Date.now()+20000;H.tk=!restore.newcode;
         const o=S.players.find(x=>x.id===restore.from);if(o&&o.id!==pid){o.online=false;o.off=Date.now()}
         S.players.forEach(x=>{if(x.id===pid)x.online=true});
       } else S.players.forEach(x=>{if(x.id!==S.hostPid){x.online=false;x.off=Date.now()}else x.online=true});
@@ -705,7 +747,7 @@ function hostRoom(name,restore){
       if(myAv)H.av[pid]=myAv;
     }
     AV=H.av;status="";bc();
-    if(restore&&restore.takeover)setTimeout(afterTakeover,400);
+    if(restore&&restore.takeover){if(restore.newcode)restoreNote="Neuer Raum-Code: "+S.code;setTimeout(afterTakeover,400)}
   };
   const wire=c=>{
     c._rx=Date.now();
@@ -771,6 +813,7 @@ function onHost(c,d){
 function join(c,d){
   const name=String(d.name||"").trim().slice(0,16),id=String(d.pid||"").slice(0,20);
   if(!name||!id||!S)return;
+  if((H.kicked||[]).some(k=>k.id===id||k.name===name.toLowerCase())){try{c.send({t:"err",m:"Du wurdest aus diesem Raum entfernt."})}catch(e){}return}
   let pl=S.players.find(x=>x.id===id);
   if(!pl){
     if(S.phase!=="lobby"){c.send({t:"err",m:"Das Spiel läuft schon. Warte auf die nächste Runde."});return}
@@ -1090,6 +1133,16 @@ function clientData(d,g,si){
     return}
   if(d.t==="hov"){hoNote={n:String(d.n||"").slice(0,16),at:Date.now()};toast((hoNote.n||"Jemand")+" wird Host …");render(true);return}
   if(d.t==="end"){snap=null;fail("Der Host hat den Raum geschlossen.");return}
+  if(d.t==="kicked"){snap=null;fail("Der Host hat dich aus dem Raum entfernt.");return}
+  if(d.t==="code"){
+    const nc=String(d.c||"").toUpperCase();
+    if(/^[A-Z]{4}$/.test(nc)&&room){
+      room.code=nc;ss.set("ex_room",JSON.stringify({code:nc,name:room.name}));
+      if(snap)snap.s.code=nc;
+      toast("Neuer Raum-Code: "+nc);
+      setTimeout(()=>{if(role==="client"&&room&&room.code===nc)joinRoom(nc,room.name,true)},800);
+    }
+    return}
   if(d.t==="role"){if(jg===g&&d&&typeof d.idx==="number"){myRole={idx:d.idx,cat:String(d.cat||"").slice(0,40),word:d.word==null?null:String(d.word).slice(0,40)};showRole=true;render(true)}return}
   if(d.t==="avs"){for(const k in d.m){const a=cleanAv(d.m[k]);if(a)AV[k]=a}render();return}
   if(d.t==="s"){g.got=true;if(si!=null)srvI=si;clearTimeout(g.timer);if(snap&&snap.s.hostPid!==d.s.hostPid)snap=null;if(hoNote&&d.s.hostPid!==(S&&S.hostPid))hoNote=null;S=d.s;status="";lost=false;render()}
@@ -1255,7 +1308,7 @@ function rhead(){
 const KINDS=[{k:"challenge",n:"Challenge",f:"Aufgabe für",e:"🎯",c:"#6B6B73"},{k:"question",n:"Frage",f:"Frage an",e:"💬",c:"#6B6B73"},{k:"gossip",n:"Gerücht",f:"Gerücht über",e:"🤫",c:"#6B6B73"}];
 const KCARD={challenge:{l:"Challenge für",r:"Machen oder trinken."},question:{l:"Frage an",r:"Ehrlich antworten oder trinken."},gossip:{l:"Gerücht über",r:"Stimmt es? Ehrlich sagen oder trinken."}};
 let draft={key:""};
-let snap=null, hoNote=null, lostAt=0, snapT=null;
+let snap=null, hoNote=null, lostAt=0, snapT=null, restoreNote="";
 let myRole=null, showRole=true, tlDraft={key:"",s:["","",""],lie:-1}, tlSent=false;
 function newDraft(key){return {key,stage:0,target:null,text:"",sent:[]}}
 function wstText(){
